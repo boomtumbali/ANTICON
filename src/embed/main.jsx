@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client';
 import '../vercel.js';
 import '@fontsource-variable/inter-tight';
 import '@fontsource-variable/geist-mono';
+import '../brand.css';
 import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { VideoJsMark } from '../lab/VideoJsMark.jsx';
+import { Wordmark } from '../Wordmark.jsx';
+import { ThemeWord } from '../theme.jsx';
 
 /*
  * The player on its own, in an ordinary page, at the sizes a site would
@@ -34,13 +37,16 @@ function Page() {
   return (
     <main className="ep">
       <header className="ep-head">
-        <a className="ep-mark" href="/">ANTICON</a>
+        <a className="ep-mark" href="/" aria-label="ANTICON, the start">
+          <Wordmark />
+        </a>
         <span className="ep-built">
-          Built on <VideoJsMark height={12} ink="#141414" /> 10
+          Built on <VideoJsMark height={12} ink="currentColor" /> 10
         </span>
         <nav className="ep-nav">
           <a className="ep-link" href="/">The feed</a>
           <a className="ep-link" href="/player/">Player lab</a>
+          <ThemeWord />
         </nav>
       </header>
       <section className="ep-intro">
@@ -91,7 +97,7 @@ function Page() {
       <footer className="ep-foot">
         <span>Player</span>
         <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-          Boom Tumbali
+          @boomtumbali
         </a>
         <span className="ep-foot-note">Films by Blender Studio, Creative Commons · Hosted on Mux</span>
       </footer>

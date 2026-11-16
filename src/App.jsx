@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Video } from '@videojs/react/video';
 import { MuxVideo } from '@videojs/react/media/mux-video';
+import { HlsJsVideo } from '@videojs/react/media/hlsjs-video';
 import { MuxData } from '@videojs/react/extensions/mux-data';
 import { Player } from './player/core.js';
 import { AnticonSkin } from './player/Skin.jsx';
 import { FILMS, LOCAL, localSrc, pad2, storyboardOf } from './films.js';
 import { IndexPage, Credits } from './IndexPage.jsx';
 import { Landing } from './Landing.jsx';
+import { Wordmark } from './Wordmark.jsx';
 import { ambientOf, warmFilm } from './warm.js';
 
 /*
@@ -273,6 +275,11 @@ function Feed({ start, closing, onExit, onClosed }) {
       const dy = e.clientY - t.y0;
       const dx = e.clientX - t.x0;
       if (!t.on) {
+        // a finger that was held first is the player's (volume or scrub), not a swipe to the next film
+        if (el.dataset.gesture) {
+          t = null;
+          return;
+        }
         if (Math.abs(dy) < 12 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
         const L = liveDrag.current;
         if (!L.go(live.current.pos + (dy < 0 ? 1 : -1), { drag: true })) {
@@ -321,19 +328,7 @@ function Feed({ start, closing, onExit, onClosed }) {
     };
   }, []);
 
-  // Page Up/Down also change film (↑/↓ and N/P are the skin's, given onNext/onPrev)
-  useEffect(() => {
-    const onKey = (e) => {
-      if (live.current.page || e.altKey || e.metaKey || e.ctrlKey) return;
-      const d = { PageDown: 1, PageUp: -1 }[e.key];
-      if (d) {
-        e.preventDefault();
-        live.current.step(d);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  // the next film comes by the wheel, a swipe on a phone, or the Index; the keys keep their usual meanings (↑/↓ are the volume)
 
   // once a film settles, open the way to the ones either side (and their storyboards) while you watch
   useEffect(() => {
@@ -425,7 +420,7 @@ function Feed({ start, closing, onExit, onClosed }) {
       corner={corner}
       brand={
         <button type="button" className="ac-brand" onClick={onExit} aria-label="ANTICON, back to the start">
-          ANTICON
+          <Wordmark center />
         </button>
       }
       below={gate ? <span className="ac-mono ac-gate">{fine ? 'Sound is off · click or press any key' : 'Sound is off · tap anywhere'}</span> : null}
@@ -480,7 +475,15 @@ function Feed({ start, closing, onExit, onClosed }) {
           root.current?.focus({ preventScroll: true });
         }}
       />
-      <Credits film={film} open={page === 'credits'} onClose={closePage} />
+      <Credits
+        film={film}
+        open={page === 'credits'}
+        onClose={closePage}
+        onHome={() => {
+          setPage(null);
+          onExit();
+        }}
+      />
     </AnticonSkin>
   );
 }
@@ -601,6 +604,7 @@ function Film({ film, visible, soundPref, from, loop, onReady, onEnded, onSilenc
     if (ref.current) ref.current.loop = loop;
   }, [loop]);
   const cls = `ac-media ac-film${visible ? ' is-up' : ''}`;
+  if (src && /\.m3u8($|\?)/.test(src)) return <HlsJsVideo ref={ref} className={cls} src={src} crossOrigin="anonymous" playsInline preload="auto" />;
   if (src) return <Video ref={ref} className={cls} src={src} playsInline preload="auto" />;
   return <MuxVideo ref={ref} className={cls} source={source} crossOrigin="anonymous" playsInline preload="auto" />;
 }

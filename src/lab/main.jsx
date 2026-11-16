@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client';
 import '../vercel.js';
 import '@fontsource-variable/inter-tight';
 import '@fontsource-variable/geist-mono';
+import '../brand.css';
 import '../anticon.css';
 import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { VideoJsMark } from './VideoJsMark.jsx';
+import { Wordmark } from '../Wordmark.jsx';
+import { ThemeWord } from '../theme.jsx';
 
 /*
  * The player lab. One ANTICON player, put through the screens it will meet
@@ -122,14 +125,15 @@ function Lab() {
   return (
     <div className="lab">
       <header className="lab-head">
-        <a className="lab-brand" href="/">
-          ANTICON
+        <a className="lab-brand" href="/" aria-label="ANTICON, the start">
+          <Wordmark />
         </a>
         <span className="lab-title">Player lab</span>
         <span className="lab-built">
           <span>Built on</span>
-          <VideoJsMark height={13} ink="#f3f1ec" />
+          <VideoJsMark height={13} ink="currentColor" />
           <span>10</span>
+          <ThemeWord className="lab-theme" />
         </span>
       </header>
 
@@ -149,7 +153,7 @@ function Lab() {
         <p className="lab-credit">
           <span>Player</span>
           <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-            Boom Tumbali
+            @boomtumbali
           </a>
         </p>
       </aside>

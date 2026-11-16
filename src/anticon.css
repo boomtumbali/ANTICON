@@ -26,8 +26,7 @@
 .ac--page { position: fixed; inset: 0; }
 .ac--box { width: 100%; }
 :where(.ac button) { font: inherit; color: inherit; }
-.ac[data-fine] { cursor: none; }
-.ac[data-fine] :is(button, [role=slider]) { cursor: pointer; }
+.ac[data-fine] :is(button, [role=slider], a) { cursor: pointer; }
 .ac[data-fine] .ac-vol { cursor: ns-resize; }
 .ac[data-fine] .ac-ix { cursor: default; }
 
@@ -100,7 +99,7 @@
 button.ac-title { cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 0.25s; }
 button.ac-title:hover { text-decoration-color: currentColor; }
 .ac-tc { position: absolute; top: var(--et); left: 50%; translate: -50% 0; }
-.ac-brand { font: 500 13px/1 var(--sans); letter-spacing: 0.62em; margin-right: -0.62em; }
+.ac-brand { font: 500 13px/1 var(--sans); }
 .ac-tr { position: absolute; top: calc(var(--et) - 8px); right: calc(var(--er) - 6px); display: flex; align-items: center; }
 .ac-tr > .ac-mono { padding: 8px 6px; }
 .ac-corner { display: flex; align-items: center; gap: 12px; }
@@ -129,18 +128,19 @@ button.ac-title:hover { text-decoration-color: currentColor; }
 
 /* ---------- big type in the middle ---------- */
 .ac-bigtime, .ac-flash { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 3; margin: 0; pointer-events: none; font: 200 clamp(36px, 15cqmin, 156px)/1 var(--sans); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; text-shadow: 0 0 60px rgb(0 0 0 / 0.35); white-space: nowrap; }
+/* what a key or a touch did: in capitals like the rest of the controls, at a size you read and forget */
+.ac-flash { display: grid; justify-items: center; gap: 14px; font: 250 clamp(20px, 4.4cqmin, 44px)/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; margin-right: -0.08em; }
+.ac-flash[data-held] { animation: ac-flash-in 0.2s var(--ease) both; }
+@keyframes ac-flash-in { from { opacity: 0; } }
+/* how loud: a hairline that fills */
+.ac-meter { position: relative; display: block; width: clamp(120px, 22cqmin, 240px); height: 1px; background: rgb(var(--fg-rgb) / 0.28); }
+.ac-meter > span { position: absolute; inset: 0; background: currentColor; transform-origin: 0 50%; transition: transform 0.08s linear; }
 .ac-flash { animation: ac-flash 0.7s var(--ease) both; }
 .ac-flash[data-side='left'] { left: 25%; }
 .ac-flash[data-side='right'] { left: 75%; }
 @keyframes ac-flash { 0% { opacity: 0; transform: scale(0.96); } 20% { opacity: 1; transform: none; } 70% { opacity: 1; } 100% { opacity: 0; } }
 
 .ac:has(.ac-bigtime) .ac-cover, .ac:has(.ac-flash) .ac-cover { visibility: hidden; }
-
-/* ---------- the pointer as words ---------- */
-.ac-cursor { position: absolute; left: 0; top: 0; z-index: 60; pointer-events: none; mix-blend-mode: difference; color: #fff; opacity: 0; transition: opacity 0.2s; }
-.ac-cursor[data-shown] { opacity: 1; }
-.ac[data-idle] .ac-cursor, .ac:has(.ac-bigtime) .ac-cursor, .ac[data-overlay] .ac-cursor { opacity: 0; }
-.ac-cursor > span { display: block; translate: -50% -50%; text-align: center; white-space: nowrap; font: 400 10px/1.4 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
 
 /* ---------- index and credits (pages of the feed, inside the player) ---------- */
 .ac-ix { position: absolute; inset: 0; z-index: 40; display: grid; grid-template-rows: auto 1fr auto; gap: 20px; padding: var(--et) var(--er) var(--eb) var(--el); background: rgb(0 0 0 / 0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); overflow-y: auto; animation: ac-in 0.35s var(--ease) both; }
@@ -195,7 +195,7 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
   .ac-title { font-size: clamp(20px, 6.4cqw, 28px); }
   .ac-brand { display: none; }
 }
-/* a small box (a thumbnail-sized embed): the title and the time of day step aside */
+/* a small box (a thumbnail-sized embed): the title and the corner step aside */
 @container ac (max-height: 300px) {
   .ac--box .ac-tr, .ac-tl .ac-mono, .ac-tc { display: none; }
   .ac-title { font-size: 15px; }
@@ -299,9 +299,19 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 /* the centre line runs the full height, through the strip, like a playhead */
 .ac-strip-x { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; translate: -0.5px 0; background: rgb(243 241 236 / 0.85); transform: scaleY(0); transition: transform 0.6s var(--ease); }
 .ac-strip[data-open] .ac-strip-x { transform: scaleY(1); }
-.ac-strip-t { position: absolute; left: 50%; top: calc(50% - var(--th) / 2 - 14px); translate: -50% -100%; color: var(--fg); opacity: 0; transition: opacity 0.3s var(--ease); text-shadow: 0 0 10px rgb(0 0 0 / 0.6); padding: 2px 8px; background: rgb(0 0 0 / 0.55); }
+/* where you point, left of the centre line; how long the film is, right of it: the line is the division */
+.ac-strip-t { position: absolute; left: 0; right: 0; top: calc(50% - var(--th) / 2 - 12px); translate: 0 -100%; display: grid; grid-template-columns: 1fr 1fr; column-gap: 22px; color: var(--fg); opacity: 0; transition: opacity 0.3s var(--ease); text-shadow: 0 0 8px rgb(0 0 0 / 0.85), 0 0 2px rgb(0 0 0 / 0.9); }
+.ac-strip-at { justify-self: end; }
+.ac-strip-of { justify-self: start; }
 .ac-strip[data-open] .ac-strip-t { opacity: 1; }
-.ac:has(.ac-strip[data-open]) :is(.ac-cover, .ac-cursor) { visibility: hidden; }
+.ac:has(.ac-strip[data-open]) .ac-cover { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .ac-strip-band, .ac-strip[data-open] .ac-strip-band, .ac-strip-x { transition-duration: 0.15s; }
 }
+
+/* inside the player it is always night: light scrollbars, whatever the page */
+.ac { --sb: rgb(243 241 236 / 0.22); --sb-hover: rgb(243 241 236 / 0.5); }
+
+/* when the film will end, in the viewer's time */
+.ac-ends { padding: 8px 6px; white-space: nowrap; }
+.ac-q > span { white-space: nowrap; }

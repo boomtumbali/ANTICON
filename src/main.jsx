@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './vercel.js';
 import '@fontsource-variable/inter-tight';
 import '@fontsource-variable/geist-mono';
+import './brand.css';
 import './anticon.css';
 import './page.css';
 import './landing.css';

@@ -2,39 +2,41 @@
 <html lang="en" data-loading>
   <head>
     <meta charset="UTF-8" />
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem('anticon-theme')==='light'?'light':'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="ANTICON: a Video.js 10 player with no icons, only words and numbers. Ten Blender open movies, one to a screen, for as long as you keep scrolling." />
     <title>ANTICON — a player without icons</title>
-    <link rel="canonical" href="https://anticon-blond.vercel.app/" />
+    <link rel="canonical" href="https://anticon-boom.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://anticon-blond.vercel.app/" />
+    <meta property="og:url" content="https://anticon-boom.vercel.app/" />
     <meta property="og:title" content="ANTICON by @boomtumbali" />
     <meta property="og:description" content="A Video.js 10 player with no icons, only words and numbers. Ten Blender open movies, one to a screen, for as long as you keep scrolling." />
-    <meta property="og:image" content="https://anticon-blond.vercel.app/og.png" />
+    <meta property="og:image" content="https://anticon-boom.vercel.app/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="ANTICON by @boomtumbali: a video player without icons" />
     <meta property="og:site_name" content="ANTICON" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://anticon-blond.vercel.app/og.png" />
+    <meta name="twitter:image" content="https://anticon-boom.vercel.app/og.png" />
     <link rel="preconnect" href="https://stream.mux.com" crossorigin />
     <link rel="preconnect" href="https://image.mux.com" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- the preloader: the A of ANTICON, its crossbar drawn out across the screen as the page loads; then the screen parts along that line -->
+    <!-- the preloader: the mark (the A of ANTICON without its crossbar); its hairline draws out across the screen as the page loads, then the screen parts along it -->
     <style>
       @property --k { syntax: '<number>'; inherits: true; initial-value: 0; }
-      #pre { position: fixed; inset: 0; z-index: 100; --k: 0; animation: pre-creep 5s cubic-bezier(0.2, 0.6, 0.3, 1) forwards; }
+      #pre { --pre-bg: #000; --pre-ink: #f3f1ec; position: fixed; inset: 0; z-index: 100; --k: 0; animation: pre-creep 5s cubic-bezier(0.2, 0.6, 0.3, 1) forwards; }
       #pre[data-js] { animation: none; }
+      html[data-theme='light'] #pre { --pre-bg: #f3f1ec; --pre-ink: #121212; }
       @keyframes pre-creep { to { --k: 0.42; } }
-      #pre .h { position: absolute; left: 0; right: 0; height: 50%; background: #000; transition: transform 1s cubic-bezier(0.72, 0, 0.18, 1); }
+      #pre .h { position: absolute; left: 0; right: 0; height: 50%; background: var(--pre-bg); transition: transform 1s cubic-bezier(0.72, 0, 0.18, 1); }
       #pre .t { top: 0; }
       #pre .b { bottom: 0; }
-      #pre .a { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; translate: -50% -54.7%; transition: opacity 0.45s ease; }
-      #pre .l { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #f3f1ec; transform: scaleX(calc(0.035 + var(--k) * 0.965)); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease 0.35s; }
+      #pre .a { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; translate: -50% -50%; fill: var(--pre-ink); transition: opacity 0.45s ease; }
+      #pre .l { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--pre-ink); transform: scaleX(calc(0.035 + var(--k) * 0.965)); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease 0.35s; }
       #pre[data-done] .t { transform: translateY(-100%); }
       #pre[data-done] .b { transform: translateY(100%); }
       #pre[data-done] { pointer-events: none; }
@@ -44,7 +46,7 @@
     </style>
   </head>
   <body>
-    <div id="pre" aria-hidden="true"><div class="h t"></div><div class="h b"></div><svg class="a" viewBox="0 0 64 64"><path transform="translate(15.686 48) scale(0.025503 -0.025503)" fill="#f3f1ec" d="M168.0015869140625 0H24.6654052734375L567.9990234375 1490H713.3348388671875L1254.66845703125 0H1112.6656494140625L644.6669921875 1313.3297119140625H634.6668701171875ZM271.3328857421875 571.333984375H1010.0009765625V449.3316650390625H271.3328857421875Z"/></svg><div class="l"></div></div>
+    <div id="pre" aria-hidden="true"><div class="h t"></div><div class="h b"></div><svg class="a" viewBox="0 0 64 64"><path transform="translate(14.828 52.000) scale(0.026846 -0.026846)" d="M168.0015869140625 0H24.6654052734375L567.9990234375 1490H713.3348388671875L1254.66845703125 0H1112.6656494140625L644.6669921875 1313.3297119140625H634.6668701171875Z"/></svg><div class="l"></div></div>
     <div id="root"></div>
     <noscript>ANTICON needs JavaScript to play.</noscript>
     <script type="module" src="/src/main.jsx"></script>

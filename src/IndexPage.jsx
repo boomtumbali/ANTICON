@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Wordmark } from './Wordmark.jsx';
 import { FILMS, pad2 } from './films.js';
 
 /**
@@ -52,11 +53,11 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
         <span className="ac-mono">Index · {pad2(FILMS.length)} films</span>
         {onHome ? (
           <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
-            ANTICON
+            <Wordmark center />
           </button>
         ) : (
           <span className="ac-brand" aria-hidden="true">
-            ANTICON
+            <Wordmark center />
           </span>
         )}
         <button type="button" className="ac-link" onClick={onClose}>
@@ -91,7 +92,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
       <p className="ac-ix-foot">
         ANTICON, a Video.js 10 player with no icons: only words and numbers. Ten Blender Studio open movies (Creative Commons), hosted on Mux.
         <span className="ac-ix-keys">
-          Player <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">Boom Tumbali</a> · ? for every key
+          Player <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
         </span>
       </p>
       {/* all ten posters are loaded with the Index and stacked; the one you point at fades up, so changing is instant */}
@@ -105,7 +106,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
 }
 
 /** Credits for the film in view: what it is, who made it, where it streams from. */
-export function Credits({ film, open, onClose }) {
+export function Credits({ film, open, onClose, onHome }) {
   const ref = useRef(null);
   useEffect(() => {
     if (!open) return undefined;
@@ -126,11 +127,11 @@ export function Credits({ film, open, onClose }) {
         <span />
         {onHome ? (
           <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
-            ANTICON
+            <Wordmark center />
           </button>
         ) : (
           <span className="ac-brand" aria-hidden="true">
-            ANTICON
+            <Wordmark center />
           </span>
         )}
         <button type="button" className="ac-link" onClick={onClose}>
@@ -165,7 +166,7 @@ export function Credits({ film, open, onClose }) {
               <dt>Player</dt>
               <dd>
                 <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-                  Boom Tumbali
+                  @boomtumbali
                 </a>
               </dd>
             </div>

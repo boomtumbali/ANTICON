@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Video } from '@videojs/react/video';
 import { MuxVideo } from '@videojs/react/media/mux-video';
+import { HlsJsVideo } from '@videojs/react/media/hlsjs-video';
 import { Player } from './core.js';
 import { AnticonSkin } from './Skin.jsx';
 
@@ -42,7 +43,9 @@ function Single({ title, meta, playbackId, src, poster, storyboard, autoPlay, as
       style={aspect ? { aspectRatio: aspect, ...style } : style}
     >
       {still && <img className="ac-still" src={still} alt="" aria-hidden="true" decoding="async" />}
-      {src ? (
+      {src && /\.m3u8($|\?)/.test(src) ? (
+        <HlsJsVideo ref={media} className="ac-media" src={src} crossOrigin="anonymous" playsInline preload="metadata" autoPlay={autoPlay} muted={autoPlay} />
+      ) : src ? (
         <Video ref={media} className="ac-media" src={src} playsInline preload="metadata" autoPlay={autoPlay} muted={autoPlay} />
       ) : (
         <MuxVideo ref={media} className="ac-media" source={source} crossOrigin="anonymous" playsInline preload="metadata" autoPlay={autoPlay} muted={autoPlay} />

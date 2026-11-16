@@ -1,5 +1,5 @@
 html, body { margin: 0; background: #000; }
-html { scrollbar-width: thin; scrollbar-color: rgb(243 241 236 / 0.25) #000; }
+html[data-theme='light'], html[data-theme='light'] body { background: #f3f1ec; }
 /* the feed covers the page: the page underneath stops scrolling */
 html[data-feed], html[data-feed] body { overflow: hidden; overscroll-behavior: none; }
 .ac--page { z-index: 10; }

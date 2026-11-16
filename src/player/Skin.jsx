@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Container, Gesture, Hotkey, StatusAnnouncer } from '@videojs/react';
+import { Container, Hotkey, StatusAnnouncer, useQualityOptions } from '@videojs/react';
 import { subscribeToInputActions } from '@videojs/core/dom';
 import { usePlayer } from './core.js';
 import { frameAt, useStoryboard } from './storyboard.js';
@@ -9,9 +9,9 @@ import { frameAt, useStoryboard } from './storyboard.js';
  * poster on the edges of the player's own box.
  *
  *   top left      the title, and a line about it
- *   top right     a slot (the time of day, or whatever the page puts there)
+ *   top right     a slot (when the film will end, or whatever the page puts there)
  *   left edge     what the film does: play, back, forward, speed, captions, loop (read upward)
- *   right edge    how you see and hear it: sound, fill, picture in picture, cast, full (read downward)
+ *   right edge    how you see and hear it: sound, fill, quality, picture in picture, cast, full (read downward)
  *   bottom        the time, one hairline of progress, the length
  *
  * A switch is a word: plain when on, a line through it when off.
@@ -28,10 +28,6 @@ export function clock(sec) {
   const h = Math.floor(sec / 3600);
   return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 }
-const hms = (sec) => {
-  const v = Math.max(0, Math.floor(sec || 0));
-  return `${pad2(Math.floor(v / 3600))}:${pad2(Math.floor(v / 60) % 60)}:${pad2(v % 60)}`;
-};
 const RATES = [1, 1.25, 1.5, 2, 0.5, 0.75];
 
 const useMatch = (q) => {
@@ -157,23 +153,34 @@ function useTone(root, mode, fill) {
   return tone;
 }
 
-/** The local time, to the second, like a slate. */
-export function Clock() {
-  const [now, setNow] = useState(() => new Date());
+/**
+ * When the film will end, in your own time: what is left of it, at the speed
+ * it is playing, from now. It moves on while the film is paused (the end
+ * gets later), and it is gone once the film has ended.
+ */
+export function EndsAt() {
+  const t = usePlayer((s) => s.currentTime);
+  const d = usePlayer((s) => s.duration);
+  const rate = usePlayer((s) => s.playbackRate) || 1;
+  const ended = usePlayer((s) => s.ended);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const id = setInterval(() => setNow(Date.now()), 15000);
     return () => clearInterval(id);
   }, []);
-  const zone = useMemo(() => {
+  const fmt = useMemo(() => {
     try {
-      return new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value ?? '';
+      return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
     } catch {
-      return '';
+      return null;
     }
   }, []);
+  if (!d || !Number.isFinite(d) || ended || !fmt) return null;
+  const left = Math.max(0, d - (t || 0)) / rate;
+  const at = fmt.format(new Date(now + left * 1000));
   return (
-    <span className="ac-mono" aria-hidden="true">
-      {pad2(now.getHours())}:{pad2(now.getMinutes())}:{pad2(now.getSeconds())} {zone}
+    <span className="ac-mono ac-ends" title="If you watch to the end from here, at this speed">
+      <span className="ac-dim">Ends</span> {at}
     </span>
   );
 }
@@ -245,6 +252,42 @@ function VolumeNumber({ value }) {
     </span>
   );
 }
+
+/**
+ * Quality, as a word: AUTO (with the height playing now, dim) or the height
+ * you chose, 1080P, 720P... Each click steps to the next: Auto, then the
+ * highest, down to the lowest, then Auto again. Only shown when the stream
+ * offers more than one.
+ */
+// Auto first, then the sizes from the highest down (whatever order the stream lists them in)
+const qualityOrder = (q) => {
+  const px = (o) => parseInt(o.label, 10) || 0;
+  return [...q.options].sort((a, b) => (a.value === 'auto' ? -1 : b.value === 'auto' ? 1 : px(b) - px(a)));
+};
+function QualityWord({ q, active, pri }) {
+  if (!q || q.hidden || q.options.length < 3) return null;
+  const opts = qualityOrder(q);
+  const auto = q.value === 'auto';
+  const word = (o) => (o.value === 'auto' ? 'Auto' : o.label);
+  const i = Math.max(0, opts.findIndex((o) => o.value === q.value));
+  const next = opts[(i + 1) % opts.length];
+  return (
+    <button type="button" className="ac-word ac-act ac-q" data-pri={pri} onClick={() => q.setValue(next.value)} aria-label={`Quality ${auto ? 'automatic' : word(opts[i])}. Change to ${word(next)}`}>
+      <span>
+        {auto ? 'Auto' : word(opts[i])}
+        {auto && active?.height ? <span className="ac-dim"> {active.height}</span> : null}
+      </span>
+    </button>
+  );
+}
+export const stepQuality = (q) => {
+  if (!q || q.hidden || q.options.length < 3) return null;
+  const opts = qualityOrder(q);
+  const i = Math.max(0, opts.findIndex((o) => o.value === q.value));
+  const next = opts[(i + 1) % opts.length];
+  q.setValue(next.value);
+  return next.value === 'auto' ? 'Auto' : next.label;
+};
 
 /** One hairline of progress. No knob, no dot. Point at it and the time appears large in the middle. */
 function Scrub({ onPeek }) {
@@ -391,50 +434,9 @@ function Filmstrip({ peek, sb, duration }) {
       </div>
       <span className="ac-strip-x" />
       <span className="ac-strip-t ac-mono" ref={label}>
-        {open ? clock(peek) : ''} <span className="ac-dim">/ {clock(duration)}</span>
+        <span className="ac-strip-at">{open ? clock(peek) : ''}</span>
+        <span className="ac-strip-of ac-dim">{clock(duration)}</span>
       </span>
-    </div>
-  );
-}
-
-/** The pointer as words: Play or Pause over the running timecode. Mouse and pen only. */
-function Cursor({ root }) {
-  const paused = usePlayer((s) => s.paused);
-  const ended = usePlayer((s) => s.ended);
-  const t = usePlayer((s) => s.currentTime);
-  const ref = useRef(null);
-  const [over, setOver] = useState(false);
-  useEffect(() => {
-    const host = root.current;
-    const el = ref.current;
-    if (!host || !el) return undefined;
-    let raf = 0;
-    const move = (e) => {
-      if (e.pointerType === 'touch') return;
-      const r = host.getBoundingClientRect();
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => (el.style.transform = `translate3d(${x}px, ${y}px, 0)`));
-      // only over the picture itself: over a word, the ordinary pointer
-      const free = !e.target.closest?.('button, [role=slider], a, [role=dialog], .ac-nofilm');
-      setOver(free);
-    };
-    const leave = () => setOver(false);
-    host.addEventListener('pointermove', move);
-    host.addEventListener('pointerdown', move);
-    host.addEventListener('pointerleave', leave);
-    return () => {
-      host.removeEventListener('pointermove', move);
-      host.removeEventListener('pointerdown', move);
-      host.removeEventListener('pointerleave', leave);
-      cancelAnimationFrame(raf);
-    };
-  }, [root]);
-  return (
-    <div ref={ref} className="ac-cursor" data-shown={over || undefined} aria-hidden="true">
-      <span>{ended ? 'Replay' : paused ? 'Play' : 'Pause'}</span>
-      <span>{hms(t)}</span>
     </div>
   );
 }
@@ -452,14 +454,17 @@ function KeysSheet({ feed, fine, onClose }) {
     [',  .', 'One frame (pauses)'],
     ['Home  End', 'The start, the end'],
     ['0 – 9', 'Jump to 0 % … 90 %'],
-    feed ? ['↑  ↓   N  P', 'Previous or next film'] : ['↑  ↓', 'Volume'],
-    feed ? ['Shift ↑  ↓', 'Volume'] : null,
+    ['↑  ↓', 'Volume'],
     ['M', 'Sound on or off'],
+    ['Q', 'Quality: Auto, then each size the stream offers'],
     ['C', 'Captions'],
     ['<  >', 'Slower, faster'],
     ['F   double-click', 'Full screen'],
     ['I', 'Picture in picture'],
     ['?   Esc', 'This list, close'],
+    ['Drag sideways', 'Scrub, with the film\'s frames'],
+    ['Drag up or down', 'Volume'],
+    feed ? ['Wheel   Index', 'Next or previous film'] : null,
   ].filter(Boolean);
   const touch = [
     ['Tap', 'Play or pause'],
@@ -468,6 +473,8 @@ function KeysSheet({ feed, fine, onClose }) {
     ['Double-tap the middle', 'Fill or fit'],
     ['Hold', 'Twice the speed, while you hold'],
     ['Slide sideways', 'Scrub, up to three minutes across'],
+    ['Hold, then slide up or down', 'Volume'],
+    ['Hold, then slide sideways', 'Scrub'],
     ['Pinch', 'Out to fill, in to fit'],
     feed ? ['Swipe up or down', 'Next or previous film'] : null,
   ].filter(Boolean);
@@ -505,13 +512,13 @@ function KeysSheet({ feed, fine, onClose }) {
  * Props:
  *   title, meta        top left (meta: a short line under the title)
  *   onTitle            makes the title a link (the feed opens Credits with it)
- *   corner             top right; defaults to the time of day
+ *   corner             top right; defaults to when the film will end, in the viewer's own time
  *   brand              top centre (optional)
  *   below              under the hairline, centred (optional)
  *   defaultFill        start filling the box (crop) instead of fitting the whole frame
  *   loop, onLoop       show a Loop switch
  *   onFullscreen, isFull, canFull   take over full screen (the feed fills the page)
- *   onNext, onPrev     a feed: ↑/↓ and N/P change film (volume moves to Shift ↑/↓)
+ *   onNext, onPrev     a feed (the keys list then mentions the wheel; ↑/↓ stay volume, as everywhere)
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
  *   tone               'adapt' (read the picture, default), 'dark' (always light ink), 'light' (always dark ink)
@@ -574,6 +581,8 @@ export function AnticonSkin({
   const fsAvail = usePlayer((s) => s.fullscreenAvailability);
   const fsOn = usePlayer((s) => s.isFullscreen);
   const controlsVisible = usePlayer((s) => s.controlsVisible);
+  const q = useQualityOptions();
+  const activeRendition = usePlayer((s) => s.activeVideoRendition);
   const [fillPref, setFillPref] = useState(null);
   const fill = fillPref ?? defaultFill;
   const [peek, setPeek] = useState(null);
@@ -592,25 +601,83 @@ export function AnticonSkin({
     if (autoFocus) root.current?.focus({ preventScroll: true });
   }, [autoFocus]);
 
-  // a mouse click on a word leaves the keyboard with the player, so Space still plays and pauses
+  /* ---------- the mouse: a click plays or pauses; a drag sideways scrubs; a drag up or down is the volume ---------- */
   useEffect(() => {
     const el = root.current;
-    const onUp = (e) => {
-      if (e.pointerType !== 'mouse') return;
-      if (e.target.closest?.('.ac-edges button, .ac-edges [role=slider]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
-      else if (live.current.soundGate && live.current.onSoundGate && !live.current.overlay && !e.target.closest?.('.ac-ix, .ac-keys, button, a')) live.current.onSoundGate();
+    let m = null;
+    const onWord = (e) => !!e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr');
+    const down = (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      if (onWord(e)) return;
+      if (live.current.overlay) return;
+      m = { id: e.pointerId, x: e.clientX, y: e.clientY, r: el.getBoundingClientRect(), mode: null };
     };
-    el.addEventListener('pointerup', onUp);
-    return () => el.removeEventListener('pointerup', onUp);
-  }, []);
+    const move = (e) => {
+      if (!m || e.pointerId !== m.id) return;
+      const dx = e.clientX - m.x;
+      const dy = e.clientY - m.y;
+      if (!m.mode) {
+        if (Math.hypot(dx, dy) < 8) return;
+        m.mode = Math.abs(dx) >= Math.abs(dy) ? 'scrub' : 'vol';
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          /* fine */
+        }
+        if (m.mode === 'scrub') {
+          if (!(store.state.duration > 0)) return (m.mode = 'none');
+          m.from = store.state.currentTime;
+        } else m.from = store.state.muted ? 0 : store.state.volume;
+      }
+      live.current.drag(m, dx, dy);
+    };
+    const up = (e) => {
+      if (!m || e.pointerId !== m.id) return;
+      const M = m;
+      m = null;
+      if (M.mode) {
+        live.current.dragEnd(M, e.type === 'pointercancel');
+        return;
+      }
+      if (e.type === 'pointercancel') return;
+      // a plain click on the picture
+      if (live.current.soundGate && live.current.onSoundGate) live.current.onSoundGate();
+      else live.current.toggle();
+    };
+    // a click on a word leaves the keyboard with the player, so Space still plays and pauses
+    const refocus = (e) => {
+      if (e.pointerType === 'mouse' && e.target.closest?.('.ac-edges button, .ac-edges [role=slider]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
+    };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('pointerup', refocus);
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      el.removeEventListener('pointerup', refocus);
+    };
+  }, [store]);
 
   // big words for keys and taps
   const [flash, setFlash] = useState(null);
   const flashTimer = useRef(0);
-  const show = useCallback((text, side = 'center') => {
+  const show = useCallback((text, side = 'center', level) => {
     clearTimeout(flashTimer.current);
-    setFlash({ text, side, k: performance.now() });
+    setFlash({ text, side, level, k: performance.now() });
     flashTimer.current = setTimeout(() => setFlash(null), 750);
+  }, []);
+  // held on screen while a drag sets the volume; the line under it shows how loud
+  const showHeld = useCallback((text, level) => {
+    clearTimeout(flashTimer.current);
+    setFlash((f) => ({ text, side: 'center', level, k: f?.held ? f.k : performance.now(), held: true }));
+  }, []);
+  const release = useCallback((ms = 650) => {
+    clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), ms);
   }, []);
   useEffect(() => {
     const el = root.current;
@@ -646,14 +713,58 @@ export function AnticonSkin({
   /* ---------- the keyboard: one key per thing, each answered with a big word ---------- */
   const [keysOpen, setKeysOpen] = useState(false);
   const live = useRef({});
-  live.current = { toggleFull, onNext, onPrev, overlay, keysOpen, fill, show, soundGate, onSoundGate };
+  const toggle = useCallback(() => {
+    const p = store.state.paused || store.state.ended;
+    (p ? store.play() : store.pause())?.catch?.(() => {});
+    show(p ? 'Play' : 'Pause');
+  }, [store, show]);
+  // a drag on the picture, by mouse or by a held finger: sideways scrubs (the strip shows the frames), up or down is the volume
+  const drag = useCallback(
+    (g, dx, dy) => {
+      const r = g.r;
+      if (g.mode === 'scrub') {
+        const dur = store.state.duration;
+        const span = Math.min(dur, 180); // the width of the player covers up to three minutes
+        g.to = Math.min(dur, Math.max(0, g.from + (dx / r.width) * span));
+        setPeek(g.to);
+      } else if (g.mode === 'vol') {
+        if (store.state.volumeAvailability !== 'available') {
+          showHeld('Use the volume buttons');
+          return;
+        }
+        // half the player's height takes it from silent to full
+        const v = Math.min(1, Math.max(0, g.from - dy / Math.max(120, r.height * 0.5)));
+        store.setVolume(v);
+        if (v > 0 && store.state.muted) store.setMuted(false);
+        if (v === 0 && !store.state.muted) store.setMuted(true);
+        showHeld(v === 0 ? 'Silent' : `Sound ${Math.round(v * 100)}`, v);
+      }
+    },
+    [store, showHeld],
+  );
+  const dragEnd = useCallback(
+    (g, cancelled) => {
+      if (g.mode === 'scrub') {
+        if (!cancelled && g.to != null) {
+          store.seek(g.to);
+          const dv = Math.round(g.to - g.from);
+          show(`${dv < 0 ? '−' : '+'}${Math.abs(dv)} s`);
+        }
+        setPeek(null);
+      } else if (g.mode === 'vol') release();
+    },
+    [store, show, release],
+  );
+  live.current = { toggleFull, onNext, onPrev, overlay, keysOpen, fill, show, soundGate, onSoundGate, q, toggle, drag, dragEnd };
   useEffect(() => {
     const el = root.current;
     const vol = (dv) => {
-      const v = Math.min(1, Math.max(0, store.state.volume + dv));
+      const base = store.state.muted ? 0 : store.state.volume;
+      const v = Math.min(1, Math.max(0, base + dv));
       store.setVolume(v);
       if (v > 0 && store.state.muted) store.setMuted(false);
-      show(`Sound ${Math.round(v * 100)}`);
+      if (v === 0) store.setMuted(true);
+      show(`Sound ${Math.round(v * 100)}`, 'center', v);
     };
     const onKey = (e) => {
       const L = live.current;
@@ -685,15 +796,11 @@ export function AnticonSkin({
       if (k === 'f' || k === 'F') L.toggleFull();
       else if (k === '?') setKeysOpen(true);
       else if (k === 'Escape' && st.isFullscreen) store.exitFullscreen()?.catch?.(() => {});
-      else if ((k === 'ArrowUp' || k === 'ArrowDown') && !onSlider) {
-        const up = k === 'ArrowUp';
-        // the film changing is answer enough: no big word over the move
-        if (L.onNext && !e.shiftKey) (up ? L.onPrev : L.onNext)();
-        else vol(up ? 0.05 : -0.05);
-      } else if ((k === 'n' || k === 'N') && L.onNext) {
-        L.onNext();
-      } else if ((k === 'p' || k === 'P') && L.onPrev) {
-        L.onPrev();
+      else if ((k === 'ArrowUp' || k === 'ArrowDown') && !onSlider) vol(k === 'ArrowUp' ? 0.05 : -0.05);
+      else if (k === 'q' || k === 'Q') {
+        const w = stepQuality(L.q);
+        if (w) L.show(w);
+        else done = false;
       } else if ((k === 'ArrowLeft' || k === 'ArrowRight') && e.shiftKey && !onSlider) {
         const dv = k === 'ArrowRight' ? 30 : -30;
         store.seek(Math.min(dur, Math.max(0, st.currentTime + dv)));
@@ -715,7 +822,7 @@ export function AnticonSkin({
     return () => el.removeEventListener('keydown', onKey, true);
   }, [store]);
 
-  /* ---------- touch: tap, double-tap, keep tapping, hold, slide, pinch ---------- */
+  /* ---------- touch: tap, double-tap, keep tapping, hold, slide, hold-and-slide, pinch ---------- */
   useEffect(() => {
     const el = root.current;
     const pts = new Map();
@@ -724,11 +831,14 @@ export function AnticonSkin({
     let streak = null; // { side, total, until }
     let pending = 0;
     const SIDE = (x, r) => (x - r.left < r.width / 3 ? 'left' : x - r.left > (r.width * 2) / 3 ? 'right' : 'center');
-    const onPicture = (e) => !e.target.closest?.('.ac-edges button, .ac-edges [role=slider], .ac-ix, .ac-keys');
-    const toggle = () => {
-      const p = store.state.paused || store.state.ended;
-      (p ? store.play() : store.pause())?.catch?.(() => {});
-      live.current.show(p ? 'Play' : 'Pause');
+    const onPicture = (e) => !e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr');
+    const endHold = (G) => {
+      if (G?.holding) {
+        store.setPlaybackRate(G.holding.rate);
+        G.holding = null;
+        setFlash(null);
+      }
+      delete el.dataset.gesture;
     };
     const down = (e) => {
       if (e.pointerType !== 'touch' || !onPicture(e) || live.current.overlay) return;
@@ -737,26 +847,29 @@ export function AnticonSkin({
         // two fingers: a pinch decides fill or fit
         const [a, b2] = [...pts.values()];
         clearTimeout(g?.hold);
+        endHold(g);
         g = { pinch: Math.hypot(a.x - b2.x, a.y - b2.y), done: false };
         return;
       }
       if (pts.size > 2) return;
       const r = el.getBoundingClientRect();
-      g = { x: e.clientX, y: e.clientY, t: performance.now(), r, moved: false, scrub: null, holding: false, second: false };
+      g = { x: e.clientX, y: e.clientY, t: performance.now(), r, moved: false, mode: null, held: false, holding: null, second: false };
       // a second finger-down on the same side, soon after a tap, is a double-tap: hold back the play/pause now,
       // not when the finger lifts, so a slow second tap never pauses the film on its way to +10
       if (lastTap && lastTap.side === SIDE(e.clientX, r) && g.t - lastTap.t < 320) {
         clearTimeout(pending);
         g.second = true;
       }
-      // hold: twice the speed while the finger stays
+      // hold: twice the speed while the finger stays; and from here a slide is scrub (sideways) or volume (up or down)
       g.hold = setTimeout(() => {
-        if (!g || g.moved || g.scrub) return;
+        if (!g || g.moved) return;
+        g.held = true;
+        el.dataset.gesture = 'held'; // the feed leaves a held finger alone
         g.holding = { rate: store.state.playbackRate };
         store.setPlaybackRate(2);
         if (store.state.paused) store.play()?.catch?.(() => {});
         setFlash({ text: '2×', side: 'center', k: performance.now(), hold: true });
-      }, 480);
+      }, 450);
     };
     const move = (e) => {
       if (e.pointerType !== 'touch' || !pts.has(e.pointerId) || !g) return;
@@ -777,15 +890,29 @@ export function AnticonSkin({
       if (!g.moved && Math.hypot(dx, dy) > 10) {
         g.moved = true;
         clearTimeout(g.hold);
-        // sideways: scrub; up or down: leave it to the page (or the feed)
-        if (Math.abs(dx) > Math.abs(dy) * 1.3 && store.state.duration > 0) g.scrub = { from: store.state.currentTime };
+        const sideways = Math.abs(dx) > Math.abs(dy) * 1.3;
+        if (g.held) {
+          // held, then slid: the 2× stops, and the slide takes over
+          endHold(g);
+          el.dataset.gesture = 'held';
+          g.mode = sideways ? 'scrub' : 'vol';
+        } else if (sideways) g.mode = 'scrub';
+        // a quick slide up or down (not held) belongs to the page, or to the feed
+        if (g.mode === 'scrub') {
+          if (store.state.duration > 0) g.from = store.state.currentTime;
+          else g.mode = null;
+        } else if (g.mode === 'vol') g.from = store.state.muted ? 0 : store.state.volume;
+        if (g.mode) {
+          // measured from here, so nothing jumps as the slide takes over
+          g.x = e.clientX;
+          g.y = e.clientY;
+        }
       }
-      if (g.scrub) {
-        const dur = store.state.duration;
-        const span = Math.min(dur, 180); // a full swipe across the player covers up to three minutes
-        g.scrub.to = Math.min(dur, Math.max(0, g.scrub.from + (dx / g.r.width) * span));
-        setPeek(g.scrub.to);
-      }
+      if (g.mode) live.current.drag(g, e.clientX - g.x, e.clientY - g.y);
+    };
+    // a held finger keeps the page still (a standalone player lets quick slides scroll its page)
+    const tmove = (e) => {
+      if (g && (g.held || g.mode) && e.cancelable) e.preventDefault();
     };
     const up = (e) => {
       if (e.pointerType !== 'touch' || !pts.has(e.pointerId)) return;
@@ -798,23 +925,18 @@ export function AnticonSkin({
       }
       const G = g;
       g = null;
-      if (G.second && (G.moved || G.holding)) lastTap = null;
+      if (G.second && (G.moved || G.held)) lastTap = null;
+      if (G.mode) {
+        delete el.dataset.gesture;
+        live.current.dragEnd(G, e.type === 'pointercancel');
+        return;
+      }
+      if (G.holding || G.held) {
+        endHold(G);
+        return;
+      }
+      delete el.dataset.gesture;
       if (e.type === 'pointercancel') {
-        if (G.holding) store.setPlaybackRate(G.holding.rate);
-        setPeek(null);
-        return;
-      }
-      if (G.holding) {
-        store.setPlaybackRate(G.holding.rate);
-        setFlash(null);
-        return;
-      }
-      if (G.scrub) {
-        if (G.scrub.to != null) {
-          store.seek(G.scrub.to);
-          const dv = Math.round(G.scrub.to - G.scrub.from);
-          live.current.show(`${dv < 0 ? '−' : '+'}${Math.abs(dv)} s`);
-        }
         setPeek(null);
         return;
       }
@@ -853,18 +975,20 @@ export function AnticonSkin({
       clearTimeout(pending);
       pending = setTimeout(() => {
         lastTap = null;
-        toggle();
+        live.current.toggle();
       }, 320);
     };
     el.addEventListener('pointerdown', down);
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
+    el.addEventListener('touchmove', tmove, { passive: false });
     return () => {
       el.removeEventListener('pointerdown', down);
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
+      el.removeEventListener('touchmove', tmove);
       clearTimeout(pending);
     };
   }, [store, show]);
@@ -919,7 +1043,7 @@ export function AnticonSkin({
         </div>
         {brand && <div className="ac-tc">{brand}</div>}
         <div className="ac-tr">
-          {corner === undefined ? <Clock /> : corner}
+          {corner === undefined ? <EndsAt /> : corner}
           <button type="button" className="ac-link ac-help" onClick={() => setKeysOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="?">
             {fine ? 'Keys' : 'Touch'}
           </button>
@@ -960,6 +1084,7 @@ export function AnticonSkin({
           <Word on={fill} onClick={() => setFillPref(!fill)} label="Fill the frame" pri="2">
             Fill
           </Word>
+          <QualityWord q={q} active={activeRendition} pri="3" />
           <Word on={pip} hidden={pipAvail !== 'available'} onClick={() => (pip ? store.exitPictureInPicture() : store.requestPictureInPicture())?.catch?.(() => {})} label="Picture in picture" pri="3">
             PiP
           </Word>
@@ -989,14 +1114,16 @@ export function AnticonSkin({
         </span>
       )}
       {flash && (
-        <p className="ac-flash" data-side={flash.side} key={flash.k} aria-hidden="true">
-          {flash.text}
+        <p className="ac-flash" data-side={flash.side} data-held={flash.held || flash.hold || undefined} key={flash.k} aria-hidden="true">
+          <span>{flash.text}</span>
+          {flash.level != null && (
+            <span className="ac-meter">
+              <span style={{ transform: `scaleX(${flash.level})` }} />
+            </span>
+          )}
         </p>
       )}
-      {fine && <Cursor root={root} />}
       {keysOpen && <KeysSheet feed={!!onNext} fine={fine} onClose={() => { setKeysOpen(false); root.current?.focus({ preventScroll: true }); }} />}
-
-      <Gesture type="tap" action="togglePaused" pointer="mouse" disabled={soundGate} />
 
       <Hotkey keys="Space" action="togglePaused" disabled={overlay || keysOpen} />
       <Hotkey keys="k" action="togglePaused" disabled={overlay || keysOpen} />

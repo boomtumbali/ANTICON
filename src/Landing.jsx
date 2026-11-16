@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { FILMS, LIST_SIZES, pad2, stillSet } from './films.js';
 import { warmFilm } from './warm.js';
 import { VideoJsMark } from './lab/VideoJsMark.jsx';
+import { Wordmark } from './Wordmark.jsx';
+import { ThemeWord } from './theme.jsx';
 
 /*
  * The start page. Nothing plays here. It says what ANTICON is, lets you try
@@ -99,8 +101,8 @@ export function Landing({ hidden, onEnter }) {
   return (
     <div className="ln" ref={root} inert={hidden || undefined} aria-hidden={hidden || undefined}>
       <header className="ln-top">
-        <a className="ln-brand" href="/" aria-label="ANTICON">
-          ANTICON
+        <a className="ln-brand" href="/" aria-label="ANTICON, the start">
+          <Wordmark />
         </a>
         <nav className="ln-nav" aria-label="Pages">
           <a href="/player/">Player lab</a>
@@ -108,13 +110,14 @@ export function Landing({ hidden, onEnter }) {
           <a href={REPO} target="_blank" rel="noreferrer">
             Source
           </a>
+          <ThemeWord />
         </nav>
       </header>
 
       <section className="ln-hero" data-name="Intro">
         <p className="ln-kicker ln-mono">A video player · Built on Video.js 10</p>
         <h1 className="ln-mark" aria-label="ANTICON">
-          <span aria-hidden="true">ANT</span>
+          <span aria-hidden="true">ΛNT</span>
           <span className="ln-icon" aria-hidden="true">
             ICON
           </span>
@@ -122,6 +125,13 @@ export function Landing({ hidden, onEnter }) {
         <p className="ln-lede">
           A player with no icons. Every control is a word, every number is a number, and a word with a line through it is off.
         </p>
+        {/* one thing to do, then the way the page goes on, then something to play with */}
+        <div className="ln-cta">
+          <button type="button" className="ln-enter" onClick={() => enter(0)} onPointerEnter={() => warmFilm(FILMS[0])} onFocus={() => warmFilm(FILMS[0])} aria-label="Enter. The films play with sound">
+            Enter
+          </button>
+          <span className="ln-mono ln-dim">or keep scrolling</span>
+        </div>
         <div className="ln-try">
           <span className="ln-mono ln-dim">Try the words</span>
           <Toggle>Sound</Toggle>
@@ -129,18 +139,12 @@ export function Landing({ hidden, onEnter }) {
           <Toggle>Captions</Toggle>
           <Toggle init={false}>Fill</Toggle>
         </div>
-        <div className="ln-cta">
-          <button type="button" className="ln-enter" onClick={() => enter(0)} onPointerEnter={() => warmFilm(FILMS[0])} onFocus={() => warmFilm(FILMS[0])}>
-            Enter, with sound
-          </button>
-          <span className="ln-mono ln-dim">or keep scrolling</span>
-        </div>
         <span className="ln-edge ln-edge-l ln-mono" aria-hidden="true">
           Scroll to begin
         </span>
-        <span className="ln-edge ln-edge-r ln-mono" aria-hidden="true">
-          Ten open films · Blender Studio
-        </span>
+        <a className="ln-edge ln-edge-r ln-mono" href={CONTRA} target="_blank" rel="noreferrer" aria-label="Player by Boom Tumbali, on Contra">
+          Boom Tumbali
+        </a>
       </section>
 
       <section className="ln-ten" data-name="The ten" aria-labelledby="ln-ten-h">
@@ -187,7 +191,7 @@ export function Landing({ hidden, onEnter }) {
           <li>
             <span className="ln-mono ln-dim">03</span>
             <h2>Keys and touch</h2>
-            <p>Space, arrows, numbers, M, F, and ? for the rest. Tap, double-tap a side, hold for twice the speed, slide to scrub, pinch to fill.</p>
+            <p>Space, arrows, numbers, M, F, Q, and ? for the rest. Drag sideways to scrub; hold and slide up or down for sound. Tap, double-tap a side, pinch to fill.</p>
           </li>
           <li>
             <span className="ln-mono ln-dim">04</span>
@@ -199,13 +203,13 @@ export function Landing({ hidden, onEnter }) {
           <p>
             <span className="ln-mono ln-dim">Player</span>
             <a className="ln-name" href={CONTRA} target="_blank" rel="noreferrer">
-              Boom Tumbali
+              @boomtumbali
             </a>
           </p>
           <p>
             <span className="ln-mono ln-dim">Built on</span>
             <span className="ln-vjs">
-              <VideoJsMark height={15} ink="#f3f1ec" /> <span className="ln-mono">10</span>
+              <VideoJsMark height={15} ink="currentColor" /> <span className="ln-mono">10</span>
             </span>
           </p>
           <p>
