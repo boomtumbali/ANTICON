@@ -15,9 +15,11 @@ body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
 .ep-fig { margin: 0 0 34px; }
 .ep-fig figcaption { margin-top: 10px; color: rgb(var(--ep-ink-rgb) / 0.55); }
 .ep-row { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
-.ep-col { display: grid; gap: 0; }
+.ep-col { display: grid; gap: 0; container-type: inline-size; }
 .ep-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 28px; align-items: start; }
 .ep-thumb { max-width: 300px; }
+/* the 4:3 and the thumbnail share a row only when the column has room for both; otherwise they stack */
+@container (max-width: 600px) { .ep-pair { grid-template-columns: minmax(0, 1fr); } }
 .ep-code h2 { margin: 30px 0 14px; font: 300 32px/1.1 'Inter Tight Variable', sans-serif; letter-spacing: -0.02em; }
 .ep-code pre { margin: 0; padding: 22px 24px; background: var(--ep-code-bg); outline: 1px solid rgb(var(--ep-ink-rgb) / 0.12); color: #f3f1ec; border-radius: 6px; overflow-x: auto; font: 400 13.5px/1.6 'Geist Mono Variable', monospace; }
 .ep-code p { font: 300 16px/1.5 'Inter Tight Variable', sans-serif; color: rgb(var(--ep-ink-rgb) / 0.72); }
@@ -32,4 +34,5 @@ body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
 .ep-foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid rgb(var(--ep-ink-rgb) / 0.14); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px; }
 .ep-foot > span:first-child, .ep-foot-note { font: 400 10.5px/1.3 'Geist Mono Variable', monospace; letter-spacing: 0.14em; text-transform: uppercase; color: rgb(var(--ep-ink-rgb) / 0.55); }
 .ep-foot a { font: 400 10.5px/1.3 'Geist Mono Variable', monospace; letter-spacing: 0.14em; text-transform: uppercase; color: inherit; text-underline-offset: 3px; }
-.ep-foot-note { margin-left: auto; }
+.ep-foot-note { margin-left: auto; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ep-gap { margin-left: 14px; }

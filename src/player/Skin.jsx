@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Container, Hotkey, StatusAnnouncer, useQualityOptions } from '@videojs/react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Container, Hotkey, StatusAnnouncer, useActiveTextCues, useQualityOptions } from '@videojs/react';
 import { subscribeToInputActions } from '@videojs/core/dom';
 import { usePlayer } from './core.js';
 import { frameAt, useStoryboard } from './storyboard.js';
@@ -149,7 +149,8 @@ function useTone(root, mode, fill) {
     read();
     return () => clearInterval(id);
   }, [root, mode, fill]);
-  if (mode === 'light') return { tl: 'light', tc: 'light', tr: 'light', bottom: 'light', left: 'light', right: 'light', center: 'light', veilTop: 'light', veilBottom: 'light' };
+  // ink="dark": every zone is treated as over a bright picture, so every word is dark ink (and ink="light" keeps the light ink)
+  if (mode === 'dark') return { tl: 'light', tc: 'light', tr: 'light', bottom: 'light', left: 'light', right: 'light', center: 'light', veilTop: 'light', veilBottom: 'light' };
   return tone;
 }
 
@@ -441,7 +442,190 @@ function Filmstrip({ peek, sb, duration }) {
   );
 }
 
+/**
+ * Share: the link, a word to copy it, and the places to post it, all words.
+ * The feed shares each film's own page (/film/<id>), which link previews show
+ * with that film's card; "From 02:41" adds where you are in the film.
+ * Where the device has its own share sheet (phones), "More" opens it.
+ */
+function copyText(text) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  return new Promise((res, rej) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy') ? res() : rej(new Error('copy'));
+    } catch (e) {
+      rej(e);
+    } finally {
+      ta.remove();
+    }
+  });
+}
+function SharePanel({ share, t, onClose }) {
+  const ref = useRef(null);
+  const [at, setAt] = useState(false);
+  const [copied, setCopied] = useState(null); // 'yes' | 'no'
+  useEffect(() => {
+    ref.current?.querySelector('.ac-share-copy')?.focus({ preventScroll: true });
+  }, []);
+  const start = Math.floor(t || 0);
+  const url = share.timed && at && start > 0 ? `${share.url}${share.url.includes('?') ? '&' : '?'}t=${start}` : share.url;
+  const text = share.text || share.title || 'ANTICON';
+  const enc = encodeURIComponent;
+  const places = [
+    ['X', `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`],
+    ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`],
+    ['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`],
+    ['WhatsApp', `https://wa.me/?text=${enc(`${text} ${url}`)}`],
+    ['Email', `mailto:?subject=${enc(text)}&body=${enc(url)}`],
+  ];
+  const native = typeof navigator !== 'undefined' && !!navigator.share;
+  const copy = () =>
+    copyText(url).then(
+      () => setCopied('yes'),
+      () => setCopied('no'),
+    );
+  useEffect(() => {
+    if (!copied) return undefined;
+    const id = setTimeout(() => setCopied(null), 2200);
+    return () => clearTimeout(id);
+  }, [copied]);
+  return (
+    <div className="ac-share" role="dialog" aria-modal="true" aria-label="Share" ref={ref}>
+      <div className="ac-keys-top">
+        <span className="ac-keys-title">Share</span>
+        <button type="button" className="ac-link" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      <div className="ac-share-body">
+        {share.title && <p className="ac-share-name">{share.title}</p>}
+        <p className="ac-share-url ac-mono">{url}</p>
+        <div className="ac-share-row">
+          <button type="button" className="ac-share-word ac-share-copy" onClick={copy}>
+            <span>{copied === 'yes' ? 'Copied' : copied === 'no' ? 'Select and copy above' : 'Copy link'}</span>
+          </button>
+          {share.timed && start > 0 && (
+            <button type="button" className="ac-share-word" aria-pressed={at} data-off={!at || undefined} onClick={() => setAt(!at)}>
+              <span>From {clock(start)}</span>
+            </button>
+          )}
+        </div>
+        <div className="ac-share-row ac-share-places">
+          {places.map(([name, href]) => (
+            <a key={name} className="ac-share-word" href={href} target="_blank" rel="noreferrer noopener">
+              <span>{name}</span>
+            </a>
+          ))}
+          {native && (
+            <button type="button" className="ac-share-word" onClick={() => navigator.share({ title: share.title, text, url }).catch(() => {})}>
+              <span>More</span>
+            </button>
+          )}
+        </div>
+        <span className="ac-sr" aria-live="polite">
+          {copied === 'yes' ? 'Link copied' : ''}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** Every key and every touch, as a list. Opens with ? or the word in the corner; Esc closes. */
+/* Captions. The stream's own caption track, read through Video.js (useActiveTextCues) and set by the skin,
+   so they look the same in every browser and always clear the time, the line and the words along the bottom.
+   The browser's own drawing of them is hidden in anticon.css, except where only the browser can draw:
+   iOS full screen and picture in picture (the video is marked data-native-view there). */
+const CC_TRACKS = (tr) => (tr.kind === 'captions' || tr.kind === 'subtitles') && tr.mode === 'showing';
+const ENTITIES = { amp: '&', lt: '<', gt: '>', nbsp: ' ', quot: '"', apos: "'", lrm: '', rlm: '' };
+function cueLines(cues) {
+  const out = [];
+  for (const c of cues)
+    for (const raw of String(c.text || '').split(/\r?\n/)) {
+      const line = raw
+        .replace(/<[^>]*>/g, '')
+        .replace(/&(\w+);/g, (m, k) => (k in ENTITIES ? ENTITIES[k] : m))
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (line && !out.includes(line)) out.push(line);
+    }
+  return out;
+}
+function Captions({ on, root, layout }) {
+  const cues = useActiveTextCues(CC_TRACKS);
+  const lines = useMemo(() => (on ? cueLines(cues) : []), [on, cues]);
+  const box = useRef(null);
+
+  // the native views draw their own captions: let the browser show them there
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const mark = (e) => {
+      const v = e.target;
+      if (!(v instanceof HTMLVideoElement)) return;
+      const native =
+        e.type === 'webkitbeginfullscreen' || e.type === 'enterpictureinpicture' ||
+        (e.type === 'webkitpresentationmodechanged' && v.webkitPresentationMode && v.webkitPresentationMode !== 'inline');
+      v.toggleAttribute('data-native-view', native);
+    };
+    const types = ['webkitbeginfullscreen', 'webkitendfullscreen', 'enterpictureinpicture', 'leavepictureinpicture', 'webkitpresentationmodechanged'];
+    types.forEach((t) => el.addEventListener(t, mark, true));
+    return () => types.forEach((t) => el.removeEventListener(t, mark, true));
+  }, [root]);
+
+  // how high the words along the bottom reach, over the captions' own width: measured, so the captions
+  // clear them in every layout (tall, short, phone, thumbnail) and sit low again when the words fade
+  useLayoutEffect(() => {
+    const el = root.current, cc = box.current;
+    if (!el || !cc || !on) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      if (!r.height) return;
+      const c = cc.getBoundingClientRect();
+      const gap = Math.max(8, Math.min(18, r.height * 0.018));
+      const bottom = el.querySelector('.ac-bottom');
+      const eb = bottom ? parseFloat(getComputedStyle(bottom).bottom) || 0 : 0;
+      let up = eb;
+      for (const n of el.querySelectorAll('.ac-bottom, .ac-left, .ac-right')) {
+        const b = n.getBoundingClientRect();
+        if (!b.height || b.right <= c.left || b.left >= c.right || b.top < r.top + r.height * 0.45) continue;
+        up = Math.max(up, r.bottom - b.top);
+      }
+      const gate = el.querySelector('.ac-below .ac-gate');
+      const rest = gate ? r.bottom - gate.closest('.ac-below').getBoundingClientRect().top : eb;
+      cc.style.setProperty('--cc-up', `${Math.round(up + gap)}px`);
+      cc.style.setProperty('--cc-rest', `${Math.round(Math.max(rest, eb) + gap * 0.5)}px`);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    const bottom = el.querySelector('.ac-bottom');
+    if (bottom) ro.observe(bottom); // the line under the hairline comes and goes
+    return () => ro.disconnect();
+  }, [root, on, layout, lines.length]);
+
+  if (!on) return null;
+  return (
+    <div className="ac-cc" ref={box} aria-hidden="true">
+      {lines.length > 0 && (
+        <p>
+          {lines.map((l, i) => (
+            <span key={i}>
+              <span className="ac-cc-l">{l}</span>
+              {i < lines.length - 1 && <br />}
+            </span>
+          ))}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function KeysSheet({ feed, fine, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -521,8 +705,9 @@ function KeysSheet({ feed, fine, onClose }) {
  *   onNext, onPrev     a feed (the keys list then mentions the wheel; ↑/↓ stay volume, as everywhere)
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
- *   tone               'adapt' (read the picture, default), 'dark' (always light ink), 'light' (always dark ink)
+ *   ink                'adapt' (read the picture, default), 'light' (always light ink), 'dark' (always dark ink)
  *   storyboard         a storyboard address (Mux: storyboard.json): scrubbing shows the film's frames as a strip
+ *   share              { url, title, text, timed } for the Share word (default: this page); false hides it
  *   soundGate, onSoundGate   the browser started the film silent: the next tap, click or key turns sound on
  *                      (inside that gesture, so every browser allows it) instead of playing or pausing
  */
@@ -544,7 +729,7 @@ export function AnticonSkin({
   canFull: canFullProp,
   overlay = false,
   autoFocus = false,
-  tone: toneMode = 'adapt',
+  ink: toneMode = 'adapt',
   rootRef,
   className = '',
   style,
@@ -552,6 +737,7 @@ export function AnticonSkin({
   soundGate = false,
   onSoundGate,
   storyboard,
+  share,
 }) {
   const store = usePlayer();
   const root = useRef(null);
@@ -605,7 +791,7 @@ export function AnticonSkin({
   useEffect(() => {
     const el = root.current;
     let m = null;
-    const onWord = (e) => !!e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr');
+    const onWord = (e) => !!e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr, .ac-share');
     const down = (e) => {
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
       if (onWord(e)) return;
@@ -646,7 +832,8 @@ export function AnticonSkin({
     };
     // a click on a word leaves the keyboard with the player, so Space still plays and pauses
     const refocus = (e) => {
-      if (e.pointerType === 'mouse' && e.target.closest?.('.ac-edges button, .ac-edges [role=slider]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
+      // (not for a word that opens a sheet: the sheet takes the focus)
+      if (e.pointerType === 'mouse' && e.target.closest?.('.ac-edges button, .ac-edges [role=slider]') && !e.target.closest?.('[aria-haspopup]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
     };
     el.addEventListener('pointerdown', down);
     el.addEventListener('pointermove', move);
@@ -712,6 +899,11 @@ export function AnticonSkin({
 
   /* ---------- the keyboard: one key per thing, each answered with a big word ---------- */
   const [keysOpen, setKeysOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const shareInfo =
+    share === false
+      ? null
+      : share ?? (typeof location !== 'undefined' ? { url: location.origin + location.pathname, title: title ?? 'ANTICON', text: title ? `${title}, on ANTICON` : 'ANTICON' } : null);
   const live = useRef({});
   const toggle = useCallback(() => {
     const p = store.state.paused || store.state.ended;
@@ -755,7 +947,7 @@ export function AnticonSkin({
     },
     [store, show, release],
   );
-  live.current = { toggleFull, onNext, onPrev, overlay, keysOpen, fill, show, soundGate, onSoundGate, q, toggle, drag, dragEnd };
+  live.current = { toggleFull, onNext, onPrev, overlay: overlay || shareOpen, shareOpen, keysOpen, fill, show, soundGate, onSoundGate, q, toggle, drag, dragEnd };
   useEffect(() => {
     const el = root.current;
     const vol = (dv) => {
@@ -775,6 +967,15 @@ export function AnticonSkin({
           e.preventDefault();
           e.stopPropagation();
           setKeysOpen(false);
+        }
+        return;
+      }
+      if (L.shareOpen) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setShareOpen(false);
+          el.focus({ preventScroll: true });
         }
         return;
       }
@@ -831,7 +1032,7 @@ export function AnticonSkin({
     let streak = null; // { side, total, until }
     let pending = 0;
     const SIDE = (x, r) => (x - r.left < r.width / 3 ? 'left' : x - r.left > (r.width * 2) / 3 ? 'right' : 'center');
-    const onPicture = (e) => !e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr');
+    const onPicture = (e) => !e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr, .ac-share');
     const endHold = (G) => {
       if (G?.holding) {
         store.setPlaybackRate(G.holding.rate);
@@ -1017,8 +1218,8 @@ export function AnticonSkin({
       data-fill={fill || undefined}
       data-idle={idle || undefined}
       data-fine={fine || undefined}
-      data-overlay={overlay || keysOpen || undefined}
-      data-tone-mode={toneMode}
+      data-overlay={overlay || keysOpen || shareOpen || undefined}
+      data-ink={toneMode}
       data-tone-tl={tone.tl}
       data-tone-tc={tone.tc}
       data-tone-tr={tone.tr}
@@ -1044,6 +1245,11 @@ export function AnticonSkin({
         {brand && <div className="ac-tc">{brand}</div>}
         <div className="ac-tr">
           {corner === undefined ? <EndsAt /> : corner}
+          {shareInfo && (
+            <button type="button" className="ac-link ac-share-open" onClick={() => setShareOpen(true)} aria-haspopup="dialog">
+              Share
+            </button>
+          )}
           <button type="button" className="ac-link ac-help" onClick={() => setKeysOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="?">
             {fine ? 'Keys' : 'Touch'}
           </button>
@@ -1107,6 +1313,7 @@ export function AnticonSkin({
         </div>
       </div>
 
+      <Captions on={ccShowing} root={root} layout={below ? 'below' : ''} />
       {sb && <Filmstrip peek={peek} sb={sb} duration={d} />}
       {peek != null && !sb && (
         <span className="ac-bigtime" aria-hidden="true">
@@ -1123,20 +1330,30 @@ export function AnticonSkin({
           )}
         </p>
       )}
+      {shareOpen && shareInfo && (
+        <SharePanel
+          share={shareInfo}
+          t={t}
+          onClose={() => {
+            setShareOpen(false);
+            root.current?.focus({ preventScroll: true });
+          }}
+        />
+      )}
       {keysOpen && <KeysSheet feed={!!onNext} fine={fine} onClose={() => { setKeysOpen(false); root.current?.focus({ preventScroll: true }); }} />}
 
-      <Hotkey keys="Space" action="togglePaused" disabled={overlay || keysOpen} />
-      <Hotkey keys="k" action="togglePaused" disabled={overlay || keysOpen} />
-      <Hotkey keys="m" action="toggleMuted" disabled={overlay || keysOpen} />
-      <Hotkey keys="c" action="toggleSubtitles" disabled={overlay || keysOpen} />
-      <Hotkey keys="i" action="togglePictureInPicture" disabled={overlay || keysOpen} />
-      <Hotkey keys="ArrowLeft" action="seekStep" value={-10} disabled={overlay || keysOpen} />
-      <Hotkey keys="ArrowRight" action="seekStep" value={10} disabled={overlay || keysOpen} />
-      <Hotkey keys="j" action="seekStep" value={-10} disabled={overlay || keysOpen} />
-      <Hotkey keys="l" action="seekStep" value={10} disabled={overlay || keysOpen} />
-      <Hotkey keys="0-9" action="seekToPercent" disabled={overlay || keysOpen} />
-      <Hotkey keys=">" action="speedUp" disabled={overlay || keysOpen} />
-      <Hotkey keys="<" action="speedDown" disabled={overlay || keysOpen} />
+      <Hotkey keys="Space" action="togglePaused" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="k" action="togglePaused" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="m" action="toggleMuted" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="c" action="toggleSubtitles" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="i" action="togglePictureInPicture" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="ArrowLeft" action="seekStep" value={-10} disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="ArrowRight" action="seekStep" value={10} disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="j" action="seekStep" value={-10} disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="l" action="seekStep" value={10} disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="0-9" action="seekToPercent" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys=">" action="speedUp" disabled={overlay || keysOpen || shareOpen} />
+      <Hotkey keys="<" action="speedDown" disabled={overlay || keysOpen || shareOpen} />
 
       <div className="ac-sr">
         <StatusAnnouncer />

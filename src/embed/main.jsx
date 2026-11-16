@@ -10,6 +10,7 @@ import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { VideoJsMark } from '../lab/VideoJsMark.jsx';
 import { Wordmark } from '../Wordmark.jsx';
+import { BlenderMark, MuxMark } from '../marks/Marks.jsx';
 import { ThemeWord } from '../theme.jsx';
 
 /*
@@ -95,11 +96,17 @@ function Page() {
         <p>Give it a width and an aspect ratio. A Mux playback ID, or any MP4 or HLS link as <code>src</code>.</p>
       </section>
       <footer className="ep-foot">
-        <span>Player</span>
+        <span>Vibecoder</span>
         <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
           @boomtumbali
         </a>
-        <span className="ep-foot-note">Films by Blender Studio, Creative Commons · Hosted on Mux</span>
+        <span className="ep-foot-note">
+          <span>Films</span>
+          <BlenderMark height={17} label="Blender" />
+          <span>Studio, Creative Commons</span>
+          <span className="ep-gap">Streams</span>
+          <MuxMark height={11} />
+        </span>
       </footer>
     </main>
   );

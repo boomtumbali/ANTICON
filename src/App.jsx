@@ -81,7 +81,7 @@ export default function App() {
     setClosing(true);
   }, []);
   const closed = useCallback(() => {
-    history.replaceState(null, '', location.pathname + location.search);
+    history.replaceState(null, '', location.pathname);
     setClosing(false);
     setEntry(null);
   }, []);
@@ -111,7 +111,13 @@ function Feed({ start, closing, onExit, onClosed }) {
   const els = useRef(new Map()); // pos -> { root, inner, shade, freeze, edge }
   const raf = useRef(0);
   const busy = useRef(false);
-  const times = useRef({}); // where you left each film
+  // where you left each film; a shared link can say where to begin (?t=161, in seconds)
+  const times = useRef(
+    (() => {
+      const t = Number(new URLSearchParams(location.search).get('t'));
+      return t > 0 && Number.isFinite(t) ? { [FILMS[mod(start)].id]: t } : {};
+    })(),
+  );
   const soundPref = useRef(true); // sound is the default; the browser may say not yet
   const liveP = move ? (move.live ? move.to : null) : pos;
   // the edges name the arriving film as soon as the move is certain
@@ -212,6 +218,11 @@ function Feed({ start, closing, onExit, onClosed }) {
     setMove(null);
     busy.current = false;
   }, []);
+  // the skin hides the time and its line while films change
+  useEffect(() => {
+    root.current?.toggleAttribute('data-moving', !!move);
+  }, [move]);
+
   // a timed move starts once both slides are on the page
   useLayoutEffect(() => {
     const m = moveRef.current;
@@ -236,6 +247,7 @@ function Feed({ start, closing, onExit, onClosed }) {
     const onWheel = (e) => {
       if (live.current.page || e.ctrlKey) return;
       e.preventDefault();
+      if (el.dataset.overlay) return; // a sheet is open over the film (share, keys)
       const now = performance.now();
       const gap = now - last;
       last = now;
@@ -265,7 +277,7 @@ function Feed({ start, closing, onExit, onClosed }) {
     const el = root.current;
     let t = null;
     const down = (e) => {
-      if (e.pointerType === 'mouse' || liveDrag.current.page || busy.current) return;
+      if (e.pointerType === 'mouse' || liveDrag.current.page || busy.current || el.dataset.overlay) return;
       if (e.target.closest?.('.ac-edges button, .ac-edges [role=slider], .ac-ix, .ac-keys')) return;
       if (t) return; // a second finger: the skin's pinch
       t = { id: e.pointerId, y0: e.clientY, x0: e.clientX, on: false, samples: [[performance.now(), e.clientY]] };
@@ -342,7 +354,12 @@ function Feed({ start, closing, onExit, onClosed }) {
 
   // the address names the film, so a link opens on it
   useEffect(() => {
-    if (!closing) history.replaceState(null, '', `#${FILMS[mod(pos)].id}`);
+    if (closing) return;
+    // the shared start time (?t=) has done its job; anything else in the address stays
+    const q = new URLSearchParams(location.search);
+    q.delete('t');
+    const qs = q.toString();
+    history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}#${FILMS[mod(pos)].id}`);
   }, [pos, closing]);
 
   /* ---------- arriving from the landing page, and leaving for it ---------- */
@@ -436,6 +453,12 @@ function Feed({ start, closing, onExit, onClosed }) {
       soundGate={gate}
       onSoundGate={openSound}
       storyboard={storyboardOf(film)}
+      share={{
+        url: `${location.origin}/film/${film.id}`,
+        title: film.subtitle ? `${film.title}: ${film.subtitle}` : film.title,
+        text: `${film.title} (${film.year}), on ANTICON`,
+        timed: true,
+      }}
       label={`ANTICON, ${film.title}, film ${film.n} of ${N}`}
     >
       <div className="ac-stage" aria-hidden={page ? true : undefined}>

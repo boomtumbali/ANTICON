@@ -41,3 +41,51 @@
 @supports not selector(::-webkit-scrollbar) {
   * { scrollbar-width: thin; scrollbar-color: var(--sb) transparent; }
 }
+
+/* ---------- underlines: one line, drawn, and it moves ----------
+ * Every underlined link and word on every page uses this one line. On hover,
+ * focus or a press, it slides out to the right and draws back in from the
+ * left. The film's title, underlined only under the hand, draws in from the
+ * left and leaves to the right. (The name on the start page's edge stays
+ * without a line.)
+ */
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a) {
+  text-decoration: none !important;
+  border-bottom: 0 !important;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  padding-bottom: 3px;
+}
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a):is(:hover, :focus-visible) { animation: ul-sweep 0.7s cubic-bezier(0.65, 0, 0.35, 1); }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a):active { animation: ul-sweep-press 0.55s cubic-bezier(0.65, 0, 0.35, 1); }
+@keyframes ul-sweep {
+  0% { background-size: 100% 1px; background-position: 100% 100%; }
+  45% { background-size: 0% 1px; background-position: 100% 100%; }
+  55% { background-size: 0% 1px; background-position: 0 100%; }
+  100% { background-size: 100% 1px; background-position: 0 100%; }
+}
+/* the same sweep under a press (a second name, so a click replays it while the pointer is still over the link) */
+@keyframes ul-sweep-press {
+  0% { background-size: 100% 1px; background-position: 100% 100%; }
+  45% { background-size: 0% 1px; background-position: 100% 100%; }
+  55% { background-size: 0% 1px; background-position: 0 100%; }
+  100% { background-size: 100% 1px; background-position: 0 100%; }
+}
+/* underlined only under the hand: drawn in from the left, away to the right */
+:root button.ac-title {
+  text-decoration: none !important;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  background-position: 100% 100%;
+  padding-bottom: 2px;
+  transition: background-size 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+:root button.ac-title:is(:hover, :focus-visible) { background-size: 100% 1px; background-position: 0 100%; }
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a) { animation: none !important; }
+  :root button.ac-title { transition: none; }
+}

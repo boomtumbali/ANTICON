@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Wordmark } from './Wordmark.jsx';
+import { BlenderMark, MuxMark } from './marks/Marks.jsx';
 import { FILMS, pad2 } from './films.js';
 
 /**
@@ -92,7 +93,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
       <p className="ac-ix-foot">
         ANTICON, a Video.js 10 player with no icons: only words and numbers. Ten Blender Studio open movies (Creative Commons), hosted on Mux.
         <span className="ac-ix-keys">
-          Player <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
+          Vibecoder <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
         </span>
       </p>
       {/* all ten posters are loaded with the Index and stacked; the one you point at fades up, so changing is instant */}
@@ -148,7 +149,9 @@ export function Credits({ film, open, onClose, onHome }) {
           <dl className="ac-cr-list">
             <div>
               <dt>Studio</dt>
-              <dd>{film.studio}</dd>
+              <dd className="ac-cr-logo">
+                <BlenderMark height={19} label="Blender" /> <span>Studio</span>
+              </dd>
             </div>
             <div>
               <dt>Kind</dt>
@@ -160,10 +163,12 @@ export function Credits({ film, open, onClose, onHome }) {
             </div>
             <div>
               <dt>Stream</dt>
-              <dd>Mux · {film.playbackId.slice(0, 10)}…</dd>
+              <dd className="ac-cr-logo">
+                <MuxMark height={12} />
+              </dd>
             </div>
             <div>
-              <dt>Player</dt>
+              <dt>Vibecoder</dt>
               <dd>
                 <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
                   @boomtumbali

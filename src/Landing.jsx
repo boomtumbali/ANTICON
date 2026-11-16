@@ -3,6 +3,7 @@ import { FILMS, LIST_SIZES, pad2, stillSet } from './films.js';
 import { warmFilm } from './warm.js';
 import { VideoJsMark } from './lab/VideoJsMark.jsx';
 import { Wordmark } from './Wordmark.jsx';
+import { BlenderMark, MuxMark } from './marks/Marks.jsx';
 import { ThemeWord } from './theme.jsx';
 
 /*
@@ -142,7 +143,7 @@ export function Landing({ hidden, onEnter }) {
         <span className="ln-edge ln-edge-l ln-mono" aria-hidden="true">
           Scroll to begin
         </span>
-        <a className="ln-edge ln-edge-r ln-mono" href={CONTRA} target="_blank" rel="noreferrer" aria-label="Player by Boom Tumbali, on Contra">
+        <a className="ln-edge ln-edge-r ln-mono" href={CONTRA} target="_blank" rel="noreferrer" aria-label="Vibecoded by Boom Tumbali, on Contra">
           Boom Tumbali
         </a>
       </section>
@@ -201,7 +202,7 @@ export function Landing({ hidden, onEnter }) {
         </ol>
         <footer className="ln-credits">
           <p>
-            <span className="ln-mono ln-dim">Player</span>
+            <span className="ln-mono ln-dim">Vibecoder</span>
             <a className="ln-name" href={CONTRA} target="_blank" rel="noreferrer">
               @boomtumbali
             </a>
@@ -214,11 +215,15 @@ export function Landing({ hidden, onEnter }) {
           </p>
           <p>
             <span className="ln-mono ln-dim">Films</span>
-            <span>Blender Studio, Creative Commons</span>
+            <span className="ln-logo">
+              <BlenderMark height={22} label="Blender" /> <span>Studio, Creative Commons</span>
+            </span>
           </p>
           <p>
             <span className="ln-mono ln-dim">Streams</span>
-            <span>Mux</span>
+            <span className="ln-logo">
+              <MuxMark height={14} />
+            </span>
           </p>
         </footer>
       </section>

@@ -20,7 +20,7 @@ export const stillOf = (film, width = 1600) => `https://image.mux.com/${film.pla
 
 /** Dev only: `?local` plays files from public/dev/ instead of Mux (for offline testing). */
 export const LOCAL =
-  import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('local')
+  import.meta.env?.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('local')
     ? {
         singularity: '/dev/singularity.mp4',
         // ?local&hls: Charge as a three-quality HLS stream, to try the quality word offline

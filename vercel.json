@@ -1,6 +1,16 @@
 {
   "rewrites": [
-    { "source": "/embed", "destination": "/embed/index.html" },
-    { "source": "/player", "destination": "/player/index.html" }
+    {
+      "source": "/embed",
+      "destination": "/embed/index.html"
+    },
+    {
+      "source": "/player",
+      "destination": "/player/index.html"
+    },
+    {
+      "source": "/film/:id",
+      "destination": "/film/:id/index.html"
+    }
   ]
 }

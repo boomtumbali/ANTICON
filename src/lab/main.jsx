@@ -37,10 +37,11 @@ const CARDS = [
   { id: 'bars', name: 'Bars', src: '/test/bars.mp4' },
   { id: 'split', name: 'Half and half', src: '/test/split.mp4' },
 ];
-const TONES = [
+// each choice's id is the ink it gives
+const INKS = [
   { id: 'adapt', name: 'Adapt to the picture' },
-  { id: 'dark', name: 'Always light ink' },
-  { id: 'light', name: 'Always dark ink' },
+  { id: 'light', name: 'Always light ink' },
+  { id: 'dark', name: 'Always dark ink' },
 ];
 
 const read = (key, fallback) => {
@@ -80,10 +81,10 @@ function Choice({ label, items, value, onChange }) {
 function Lab() {
   const [screen, setScreen] = useState(() => read('screen', matchMedia('(max-width: 800px)').matches ? 'free' : 'phone-side'));
   const [pic, setPic] = useState(() => read('pic', 'sprite-fright'));
-  const [tone, setTone] = useState(() => read('tone', 'adapt'));
+  const [ink, setInk] = useState(() => read('ink', 'adapt')); // (a new key: the old one stored the opposite names)
   useEffect(() => keep('screen', screen), [screen]);
   useEffect(() => keep('pic', pic), [pic]);
-  useEffect(() => keep('tone', tone), [tone]);
+  useEffect(() => keep('ink', ink), [ink]);
 
   // the stage measures itself; a screen bigger than the stage is shown scaled down, at its true size inside
   const stage = useRef(null);
@@ -145,13 +146,13 @@ function Lab() {
           onChange={setPic}
           items={[...CARDS.map((c) => ({ id: c.id, name: c.name, note: 'card' })), ...FILMS.map((f) => ({ id: f.id, name: f.title, note: String(f.year) }))]}
         />
-        <Choice label="Ink" value={tone} onChange={setTone} items={TONES} />
+        <Choice label="Ink" value={ink} onChange={setInk} items={INKS} />
         <nav className="lab-links" aria-label="Pages">
           <a href="/">The feed</a>
           <a href="/embed/">The player on a page</a>
         </nav>
         <p className="lab-credit">
-          <span>Player</span>
+          <span>Vibecoder</span>
           <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
             @boomtumbali
           </a>
@@ -161,7 +162,7 @@ function Lab() {
       <main className="lab-stage" ref={stage}>
         <div className="lab-frame" style={{ width: w * k, height: h * k }}>
           <div style={{ width: w, height: h, transform: `scale(${k})`, transformOrigin: '0 0' }}>
-            <AnticonPlayer key={`${pic}`} {...media} autoPlay tone={tone} aspect={null} style={{ width: w, height: h }} />
+            <AnticonPlayer key={`${pic}`} {...media} autoPlay ink={ink} aspect={null} style={{ width: w, height: h }} />
           </div>
         </div>
       </main>
