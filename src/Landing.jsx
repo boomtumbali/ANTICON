@@ -144,7 +144,7 @@ export function Landing({ hidden, onEnter }) {
           <li>
             <span className="ln-mono ln-dim">03</span>
             <h2>Keys and touch</h2>
-            <p>Space, arrows, numbers, M, F, Q, and ? for the rest. Drag sideways to scrub; hold on the left and slide up or down for sound. Double-tap a side for ten seconds, the middle for full screen.</p>
+            <p>Space, arrows, numbers, M, F, Q, and ? for the rest. Drag sideways to scrub; slide up or down on the left for sound, on the right for the next film. Double-tap a side for ten seconds; pinch to fill.</p>
           </li>
           <li>
             <span className="ln-mono ln-dim">04</span>

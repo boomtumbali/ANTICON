@@ -278,11 +278,10 @@ function Feed({ start, closing, onExit, onClosed }) {
     let t = null;
     const down = (e) => {
       if (liveDrag.current.page || busy.current || el.dataset.overlay) return;
-      // a mouse moves the films too, dragged up or down on the right half (the left half is the sound)
-      if (e.pointerType === 'mouse') {
-        const r = el.getBoundingClientRect();
-        if (e.button !== 0 || e.clientX - r.left < r.width / 2) return;
-      }
+      // the films move from the right half only, by finger or by mouse: the left half is the sound
+      const r = el.getBoundingClientRect();
+      if (e.clientX - r.left < r.width / 2) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.target.closest?.('.ac-edges button, .ac-edges [role=slider], .ac-ix, .ac-keys')) return;
       if (t) return; // a second finger: the skin's pinch
       t = { id: e.pointerId, y0: e.clientY, x0: e.clientX, on: false, samples: [[performance.now(), e.clientY]] };

@@ -61,13 +61,13 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 - **Adaptive by its own box.** Container queries, not the window. The words always stand up both edges, at every size; shorter boxes set them smaller and closer, and rest the less-used ones (their keys still work). A phone held sideways keeps everything but PiP and Cast; under 370 px tall, −10, +10, speed and Loop rest too; a thumbnail keeps Play, Sound and Full. Nothing overlaps at any size from a 300 px thumbnail to a TV.
 - **One ink, solid.** Every word, number and line is solid white, or solid black where the picture under it is bright: a few times a second the skin reads the frame under each group of words and each group decides for itself. No greys, no shadows, no veils; hierarchy is size alone. Where a fitted film leaves a thin black band against a bright picture, the band grows, solid black, until it holds the words; a film only a hair off the box's shape fills it instead, so no sliver of band is left under a word.
 - **The filmstrip.** While you scrub (drag the picture sideways, slide on a phone, or point at the progress line), a band opens across the middle holding the film's frames from Mux's storyboard. The pointed time sits left of the centre line, the length right of it. Dragging the picture scrubs exactly as the line does: same scale, and the film follows as you go.
-- **Two halves, two jobs.** Up or down on the left half of the picture is the sound (on a phone: hold, then slide); the middle shows `SOUND 64`. Up or down on the right half scrolls: in the feed, to the next or previous film; on a page, the page. Sideways scrubs, from anywhere.
-- **Thirds for double-taps.** Double-tap or double-click the middle for full screen, a side for ten seconds back or forward; keep tapping a side for ten more each time. A single tap or click waits that long before it plays or pauses, so a double never stops the film.
+- **Two halves, two jobs.** Up or down on the left half of the picture is the sound and nothing else, quick or held; the middle shows `SOUND 64`. Up or down on the right half scrolls: in the feed, to the next or previous film; on a page, the page. Sideways scrubs, from anywhere.
+- **Taps and clicks, the YouTube way.** A click plays or pauses at once; a double-click is full screen; ten seconds is the arrow keys. On a phone, a tap in the middle plays or pauses at once; double-tap a side (its outer third) for ten seconds back or forward, and keep tapping for ten more each time; a side's single tap waits a moment for a second one.
 - **Quality.** `AUTO`, or the size you chose (`1080P`, `720P` …); each click, or Q, steps through Auto and every size the stream offers, highest first.
 - **Sheets.** Index (in the feed), Share and Keys open over the player in solid black, each with its name where the film's title sits and Close where the corner words sit; Esc closes them.
 - **Share.** The Share word opens the link with one row of words: *Copy link*, X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
 - **Captions.** CC shows the stream's own captions (Mux's), set by the skin rather than the browser, so they look the same everywhere: Inter Tight at a reading weight, warm white on a dark box that hugs each line. They sit just above the time and the line, and settle lower when the words fade. iOS full screen and picture in picture keep the system's own captions.
-- **Answers in the middle.** Keys and taps answer in thin capitals, at a size you read and forget: `PLAY`, `+10`, `1.5×`, `SOUND 40`.
+- **Answers in the middle.** Keys and taps answer in thin capitals, at a size you read and forget: `PLAY`, `1.5×`, `SOUND 40`. Ten seconds back or forward answers on its own side (left for back, right for forward), whether from a key, the −10 and +10 words or a double-tap, and steps taken one after another add up, as on YouTube: `+10`, `+20`, `+30`.
 - **Sound by default.** Browsers allow sound after the first click, tap or key, so *Enter* and choosing a film start with sound. Arriving by scrolling or from a link, the film starts silent and says so; the first tap, click or key turns sound on and does nothing else. The volume you set carries from film to film.
 - **Calm moves between films.** One film per wheel turn or swipe, whatever the trackpad does after. The leaving film freezes on its frame (no black flash) and the next fades up only once it has a real frame to show. The time and the line stay put through the move; they rest only when you do.
 
@@ -76,7 +76,7 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 | Keys | Action |
 | --- | --- |
 | Space, K | Play or pause |
-| ← → or J L | 10 seconds back or forward (Shift: 30) |
+| ← → or J L | 10 seconds back or forward (Shift: 30); press again and it adds up |
 | , . | One frame (pauses) |
 | Home, End | The start, the end |
 | 0 – 9 | Jump to 0 % … 90 % |
@@ -85,7 +85,7 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 | Q | Quality |
 | C | Captions |
 | < > | Slower, faster |
-| F | Full screen |
+| F, double-click | Full screen |
 | I | Picture in picture |
 | ? | Every key and touch |
 | Esc | Close a sheet, the Index or Credits |
@@ -93,8 +93,6 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 | Mouse | Action |
 | --- | --- |
 | Click the picture | Play or pause |
-| Double-click the middle | Full screen |
-| Double-click a side | 10 seconds back or forward (keep clicking for more) |
 | Drag sideways | Scrub, with the film's frames (as the line does) |
 | Drag up or down, left half | Volume |
 | Drag up or down, right half | Next or previous film (feed), or the page |
@@ -104,12 +102,11 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 | --- | --- |
 | Tap | Play or pause |
 | Double-tap a side | 10 seconds back or forward (keep tapping for more) |
-| Double-tap the middle | Full screen |
 | Hold | Twice the speed while you hold |
 | Slide sideways, or hold then slide sideways | Scrub |
-| Hold on the left half, then slide up or down | Volume |
+| Slide up or down on the left half (quick or held) | Volume |
 | Pinch | Out to fill, in to fit |
-| Swipe up or down (feed) | Next or previous film; on the right half, even after a hold |
+| Swipe up or down on the right half | Next or previous film (feed), or the page |
 
 ## Use it
 
