@@ -36,20 +36,20 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 ![Three phone screens: the start page, a film in the feed, and the Index](docs/phone.jpg)
 
-**The player lab.** Every screen size, and the pictures hardest to read over.
+**Test.** Every screen size, and the pictures hardest to read over.
 
-![The player lab at laptop size on a white test card: the screens and pictures listed beside the stage, the words turned dark over the white](docs/lab.jpg)
+![The Test page at laptop size on a white test card: the screens and pictures listed beside the stage, the words turned dark over the white](docs/lab.jpg)
 
 ## Pages
 
 | Path | What it is |
 | --- | --- |
-| `/` | The start page, then the feed: ten Blender Studio films, newest first, one per screen, under one player that stays put. They never run out: after the tenth comes the first again. |
+| `/` | Feed: the start page, then the feed: ten Blender Studio films, newest first, one per screen, under one player that stays put. They never run out: after the tenth comes the first again. |
 | `/film/<id>` | A film's own link (for sharing): it previews with that film's card and opens the feed on it. |
-| `/player/` | The player lab: one player at every screen size (phone, tablet, laptop, desktop, TV, embed) over the hardest pictures (white, paper, black, bars, half and half) and all ten films. On a phone, the player comes first and the choices slide sideways under it. |
-| `/embed/` | The standalone player on an ordinary page, at 16:9, 9:16, 21:9, 4:3 and thumbnail size, with the code to use it. |
+| `/player/` | Test: one player at every screen size (phone, tablet, laptop, desktop, TV, embed) over the hardest pictures (white, paper, black, bars, half and half) and all ten films. On a phone, the player comes first and the choices slide sideways under it. |
+| `/embed/` | Embed: the standalone player on an ordinary page, at 16:9, 9:16, 21:9, 4:3 and thumbnail size, with the code to use it. |
 
-Every page has a **Light** word in its header (struck through while the page is dark, the default). The choice is shared by all pages; the player itself stays dark.
+Every page has the same header (Feed, Test, Embed, Source, less the page you are on) and a **Light** word (struck through while the page is dark, the default). The choice is shared by all pages; the player itself stays dark.
 
 ## What the player does
 

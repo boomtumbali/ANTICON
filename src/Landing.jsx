@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { FILMS, LIST_SIZES, pad2, stillSet } from './films.js';
 import { warmFilm } from './warm.js';
-import { Wordmark } from './Wordmark.jsx';
 import { BlenderLink, MuxLink, VideoJsLink } from './credits.jsx';
-import { ThemeWord } from './theme.jsx';
+import { SiteHeader } from './SiteHeader.jsx';
 
 /*
  * The start page. Nothing plays here. It says what ANTICON is, lets you try
@@ -15,7 +14,6 @@ import { ThemeWord } from './theme.jsx';
  * begin where the page ends.
  */
 
-const REPO = 'https://github.com/boomtumbali/anticon';
 const CONTRA = 'https://contra.com/boomtumbali';
 
 function Toggle({ children, init = true }) {
@@ -65,19 +63,7 @@ export function Landing({ hidden, onEnter }) {
 
   return (
     <div className="ln" ref={root} inert={hidden || undefined} aria-hidden={hidden || undefined}>
-      <header className="ln-top">
-        <a className="ln-brand" href="/" aria-label="ANTICON, the start">
-          <Wordmark />
-        </a>
-        <nav className="ln-nav" aria-label="Pages">
-          <a href="/player/">Player lab</a>
-          <a href="/embed/">Embed</a>
-          <a href={REPO} target="_blank" rel="noreferrer">
-            Source
-          </a>
-          <ThemeWord />
-        </nav>
-      </header>
+      <SiteHeader page="feed" className="ln-top" />
 
       <section className="ln-hero" data-name="Intro">
         <p className="ln-kicker ln-mono">

@@ -8,12 +8,10 @@ import '../anticon.css';
 import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
-import { VideoJsLink } from '../credits.jsx';
-import { Wordmark } from '../Wordmark.jsx';
-import { ThemeWord } from '../theme.jsx';
+import { SiteHeader } from '../SiteHeader.jsx';
 
 /*
- * The player lab. One ANTICON player, put through the screens it will meet
+ * The test page. One ANTICON player, put through the screens it will meet
  * (phone either way, tablet, laptop, desktop, TV, an embed, or the stage
  * itself) and the pictures that are hardest to read over (white, paper,
  * black, bars, half and half), and the ten films.
@@ -83,7 +81,7 @@ function Choice({ label, items, value, onChange, row }) {
         {items.map((it) => (
           <li key={it.id}>
             <button type="button" role="radio" aria-checked={value === it.id} className="lab-opt" onClick={() => onChange(it.id)}>
-              <span className="lab-dash" aria-hidden="true">–</span>
+              <span className="lab-dash" aria-hidden="true" />
               <span className="lab-name">{it.name}</span>
               {!row && it.note && <span className="lab-note">{it.note}</span>}
             </button>
@@ -94,7 +92,24 @@ function Choice({ label, items, value, onChange, row }) {
   );
 }
 
+/** Scrollbars only while something scrolls: the scrolled box is marked for a moment after each scroll. */
+function useScrollMarks() {
+  useEffect(() => {
+    const timers = new Map();
+    const on = (e) => {
+      const el = e.target === document ? document.documentElement : e.target;
+      if (!(el instanceof Element)) return;
+      el.setAttribute('data-scrolling', '');
+      clearTimeout(timers.get(el));
+      timers.set(el, setTimeout(() => el.removeAttribute('data-scrolling'), 900));
+    };
+    document.addEventListener('scroll', on, true);
+    return () => document.removeEventListener('scroll', on, true);
+  }, []);
+}
+
 function Lab() {
+  useScrollMarks();
   const narrow = useMatch(NARROW);
   const [screen, setScreen] = useState(() => read('screen', matchMedia(NARROW).matches ? 'free' : 'phone-side'));
   const [pic, setPic] = useState(() => read('pic', 'sprite-fright'));
@@ -133,28 +148,7 @@ function Lab() {
 
   return (
     <div className="lab" data-narrow={narrow || undefined}>
-      <header className="lab-head">
-        <a className="lab-brand" href="/" aria-label="ANTICON, the start">
-          <Wordmark />
-        </a>
-        <span className="lab-title">Player lab</span>
-        <nav className="lab-nav" aria-label="Pages">
-          <span className="lab-built">
-            <span>Built on</span>
-            <VideoJsLink height={13} />
-          </span>
-          <a className="lab-navlink" href="/">
-            The feed
-          </a>
-          <a className="lab-navlink" href="/embed/">
-            Embed
-          </a>
-          <a className="lab-navlink" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
-            Source
-          </a>
-          <ThemeWord />
-        </nav>
-      </header>
+      <SiteHeader page="test" className="lab-head" />
 
       <main className="lab-stage" ref={stage} style={narrow ? { height: Math.round(h * k) } : undefined}>
         <div className="lab-frame" style={{ width: w * k, height: h * k }}>
@@ -167,20 +161,6 @@ function Lab() {
       <aside className="lab-side">
         <Choice label="Screen" value={screen} onChange={setScreen} items={screens} row={narrow} />
         <Choice label="Picture" value={pic} onChange={setPic} items={pictures} row={narrow} />
-        <nav className="lab-links" aria-label="More">
-          <a className="lab-sidelink" href="/">
-            The feed
-          </a>
-          <a className="lab-sidelink" href="/embed/">
-            The player on a page
-          </a>
-          <a className="lab-sidelink" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
-            Source
-          </a>
-          <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-            @boomtumbali
-          </a>
-        </nav>
       </aside>
     </div>
   );

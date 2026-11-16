@@ -51,7 +51,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
   return (
     <div className="ac-ix" role="dialog" aria-modal="true" aria-label="Index" ref={ref}>
       <div className="ac-ix-top">
-        <span className="ac-mono">Index · {pad2(FILMS.length)} films</span>
+        <span className="ac-keys-title">Index</span>
         {onHome ? (
           <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
             <Wordmark center />
@@ -90,12 +90,6 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
           </li>
         ))}
       </ol>
-      <p className="ac-ix-foot">
-        ANTICON, a <VideoJsLink mark={false} /> player with no icons: only words and numbers. Ten <BlenderLink /> open movies, hosted on <MuxLink mark={false} />.
-        <span className="ac-ix-keys">
-          Vibecoder <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
-        </span>
-      </p>
       {/* all ten posters are loaded with the Index and stacked; the one you point at fades up, so changing is instant */}
       <div className="ac-ix-peek" ref={peekEl} data-on={peek != null || undefined} aria-hidden="true">
         {FILMS.map((f, i) => (
@@ -111,7 +105,7 @@ export function Credits({ film, open, onClose, onHome }) {
   const ref = useRef(null);
   useEffect(() => {
     if (!open) return undefined;
-    requestAnimationFrame(() => ref.current?.querySelector('button')?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => ref.current?.focus({ preventScroll: true }));
     const onKey = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -123,9 +117,9 @@ export function Credits({ film, open, onClose, onHome }) {
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="ac-ix ac-cr" role="dialog" aria-modal="true" aria-label={`Credits, ${film.title}`} ref={ref}>
+    <div className="ac-ix ac-cr" role="dialog" aria-modal="true" aria-label={`Credits, ${film.title}`} ref={ref} tabIndex={-1}>
       <div className="ac-ix-top">
-        <span />
+        <span className="ac-keys-title">Credits</span>
         {onHome ? (
           <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
             <Wordmark center />

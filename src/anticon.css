@@ -395,3 +395,26 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 .ac-ix-top { margin-top: -8px; min-height: 0; }
 @container ac (max-width: 520px) and (min-height: 600px) { .ac-keys-title { font-size: clamp(20px, 6.4cqw, 28px); } }
 @container ac (max-height: 300px) { .ac-keys-title { font-size: 15px; } }
+/* every sheet's top row, the same: its name where the film's title sits, the mark where it sits over the film,
+   Close on the corner's line */
+.ac-ix-top, .ac-keys-top { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: 12px; margin-top: 0; min-height: 0; }
+.ac-ix-top > :first-child, .ac-keys-top > :first-child { justify-self: start; }
+.ac-ix-top > :last-child, .ac-keys-top > :last-child { justify-self: end; margin-top: -8px; margin-right: -6px; }
+.ac-ix-top .ac-brand, .ac-keys-top .ac-brand { justify-self: center; }
+@container ac (max-width: 380px) { .ac-ix-top .ac-brand, .ac-keys-top .ac-brand { display: none; } }
+.ac-keys .ac-brand, .ac-share .ac-brand { display: inline-block; }
+@container ac (max-width: 380px) { .ac-keys .ac-brand, .ac-share .ac-brand, .ac-ix .ac-brand { display: none; } }
+
+/* ---------- one axis along the top ----------
+   The title (or a sheet's name) on the left, the mark in the centre and the words on the right all sit on one
+   horizontal axis: the middle of the title's line. One size drives it (--tsize), so the axis holds at every size,
+   over the film and in every sheet (Index, Credits, Share, Keys). */
+.ac { --tsize: clamp(18px, 3.3cqmin, 40px); }
+@container ac (max-width: 520px) and (min-height: 600px) { .ac-edges, .ac-ix, .ac-keys, .ac-share { --tsize: clamp(20px, 6.4cqw, 28px); } }
+@container ac (max-height: 300px) { .ac-edges, .ac-ix, .ac-keys, .ac-share { --tsize: 15px; } }
+.ac-edges, .ac-ix, .ac-keys, .ac-share { --tline: calc(var(--tsize) * 1.06); }
+.ac-title, .ac-keys-title { font-size: var(--tsize); line-height: 1.06; }
+.ac-tc, .ac-tr { top: var(--et); height: var(--tline); display: flex; align-items: center; }
+.ac-ix-top, .ac-keys-top { grid-template-rows: var(--tline); align-items: center; }
+.ac-ix-top > :last-child, .ac-keys-top > :last-child { margin-top: 0; }
+.ac-ix-top, .ac-keys-top { min-height: var(--tline); }

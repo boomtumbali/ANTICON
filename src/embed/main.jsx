@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../vercel.js';
 import '@fontsource-variable/inter-tight';
@@ -8,9 +8,8 @@ import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
-import { Wordmark } from '../Wordmark.jsx';
 import { BlenderLink, MuxLink, VideoJsLink } from '../credits.jsx';
-import { ThemeWord } from '../theme.jsx';
+import { SiteHeader } from '../SiteHeader.jsx';
 
 /*
  * The player on its own, in an ordinary page, at the sizes a site would
@@ -33,27 +32,36 @@ const CODE = `import { AnticonPlayer } from './player/AnticonPlayer.jsx';
   aspect="16 / 9"
 />`;
 
+/** Copy, as a word: it says Copied for a moment once the code is on the clipboard. */
+function CopyWord({ text }) {
+  const [done, setDone] = useState(null);
+  useEffect(() => {
+    if (!done) return undefined;
+    const id = setTimeout(() => setDone(null), 2000);
+    return () => clearTimeout(id);
+  }, [done]);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setDone('yes');
+    } catch {
+      setDone('no');
+    }
+  };
+  return (
+    <button type="button" className="ep-copy" onClick={copy} aria-live="polite">
+      {done === 'yes' ? 'Copied' : done === 'no' ? 'Select and copy' : 'Copy'}
+    </button>
+  );
+}
+
 function Page() {
   return (
+    <>
+      <SiteHeader page="embed" />
     <main className="ep">
-      <header className="ep-head">
-        <a className="ep-mark" href="/" aria-label="ANTICON, the start">
-          <Wordmark />
-        </a>
-        <span className="ep-built">
-          Built on <VideoJsLink height={12} />
-        </span>
-        <nav className="ep-nav">
-          <a className="ep-link" href="/">The feed</a>
-          <a className="ep-link" href="/player/">Player lab</a>
-          <a className="ep-link" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
-            Source
-          </a>
-          <ThemeWord />
-        </nav>
-      </header>
       <section className="ep-intro">
-        <p className="ep-kicker">The player on its own</p>
+        <p className="ep-kicker">Embed</p>
         <h1>One film, any box.</h1>
         <p>
           ANTICON is a <VideoJsLink mark={false} /> player with no icons. Here it sits in an ordinary page, one film per player, at the sizes a
@@ -92,9 +100,12 @@ function Page() {
 
       <section className="ep-code">
         <h2>Use it</h2>
-        <pre>
-          <code>{CODE}</code>
-        </pre>
+        <div className="ep-pre">
+          <CopyWord text={CODE} />
+          <pre>
+            <code>{CODE}</code>
+          </pre>
+        </div>
         <p>Give it a width and an aspect ratio. A Mux playback ID, or any MP4 or HLS link as <code>src</code>.</p>
       </section>
       <footer className="ep-foot">
@@ -118,6 +129,7 @@ function Page() {
         </span>
       </footer>
     </main>
+    </>
   );
 }
 

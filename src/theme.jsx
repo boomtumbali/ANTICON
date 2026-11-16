@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 /*
  * Light or dark page. One choice, kept in this browser and shared by every
- * page (the start page, the player lab, the player on a page). The pages set
+ * page (Feed, Test, Embed). The pages set
  * it before they paint (a line in each page's <head>), so there is no flash.
  * The player itself stays dark: it is a picture frame.
  */
