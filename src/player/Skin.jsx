@@ -1186,6 +1186,18 @@ export function AnticonSkin({
         return;
       }
       if (G.moved) return;
+      // a tap on a word that was resting: the finger woke the words, and the tap is the word's (its own click follows),
+      // not the picture's, so Full is full screen and never a pause as well
+      // (a resting word takes no pointer, so look by its place: the finger is on it if it lands within its box)
+      const onWordAt = [...el.querySelectorAll('.ac-edges button, .ac-edges a, .ac-edges [role=slider]')].some((w) => {
+        const r = w.getBoundingClientRect();
+        return r.width > 0 && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6;
+      });
+      if (onWordAt) {
+        clearTimeout(pending);
+        lastTap = null;
+        return;
+      }
       if (live.current.soundGate && live.current.onSoundGate) {
         // the first tap after the browser silenced the film: sound, not pause
         clearTimeout(pending);
