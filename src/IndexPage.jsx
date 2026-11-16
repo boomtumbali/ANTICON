@@ -6,7 +6,7 @@ import { FILMS, pad2 } from './films.js';
  * poster appears beside the pointer (on a touch screen, beside the row);
  * pick one and the feed goes straight to it. Esc closes.
  */
-export function IndexPage({ open, active, onClose, onPick }) {
+export function IndexPage({ open, active, onClose, onPick, onHome }) {
   const ref = useRef(null);
   const [peek, setPeek] = useState(null); // { i, x, y }
   useEffect(() => {
@@ -34,9 +34,15 @@ export function IndexPage({ open, active, onClose, onPick }) {
     <div className="ac-ix" role="dialog" aria-modal="true" aria-label="Index" ref={ref} onPointerMove={(e) => peek && setPeek({ ...peek, x: e.clientX, y: e.clientY })}>
       <div className="ac-ix-top">
         <span className="ac-mono">Index · {pad2(FILMS.length)} films</span>
-        <span className="ac-brand" aria-hidden="true">
-          ANTICON
-        </span>
+        {onHome ? (
+          <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
+            ANTICON
+          </button>
+        ) : (
+          <span className="ac-brand" aria-hidden="true">
+            ANTICON
+          </span>
+        )}
         <button type="button" className="ac-link" onClick={onClose}>
           Close
         </button>
@@ -95,9 +101,15 @@ export function Credits({ film, open, onClose }) {
     <div className="ac-ix ac-cr" role="dialog" aria-modal="true" aria-label={`Credits, ${film.title}`} ref={ref}>
       <div className="ac-ix-top">
         <span />
-        <span className="ac-brand" aria-hidden="true">
-          ANTICON
-        </span>
+        {onHome ? (
+          <button type="button" className="ac-brand" onClick={onHome} aria-label="ANTICON, back to the start">
+            ANTICON
+          </button>
+        ) : (
+          <span className="ac-brand" aria-hidden="true">
+            ANTICON
+          </span>
+        )}
         <button type="button" className="ac-link" onClick={onClose}>
           Back to film
         </button>

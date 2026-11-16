@@ -436,6 +436,8 @@ function KeysSheet({ feed, fine, onClose }) {
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
  *   tone               'adapt' (read the picture, default), 'dark' (always light ink), 'light' (always dark ink)
+ *   soundGate, onSoundGate   the browser started the film silent: the next tap, click or key turns sound on
+ *                      (inside that gesture, so every browser allows it) instead of playing or pausing
  */
 export function AnticonSkin({
   children,
@@ -460,6 +462,8 @@ export function AnticonSkin({
   className = '',
   style,
   label,
+  soundGate = false,
+  onSoundGate,
 }) {
   const store = usePlayer();
   const root = useRef(null);
@@ -510,7 +514,9 @@ export function AnticonSkin({
   useEffect(() => {
     const el = root.current;
     const onUp = (e) => {
-      if (e.pointerType === 'mouse' && e.target.closest?.('.ac-edges button, .ac-edges [role=slider]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
+      if (e.pointerType !== 'mouse') return;
+      if (e.target.closest?.('.ac-edges button, .ac-edges [role=slider]')) setTimeout(() => el.focus({ preventScroll: true }), 0);
+      else if (live.current.soundGate && live.current.onSoundGate && !live.current.overlay && !e.target.closest?.('.ac-ix, .ac-keys, button, a')) live.current.onSoundGate();
     };
     el.addEventListener('pointerup', onUp);
     return () => el.removeEventListener('pointerup', onUp);
@@ -558,7 +564,7 @@ export function AnticonSkin({
   /* ---------- the keyboard: one key per thing, each answered with a big word ---------- */
   const [keysOpen, setKeysOpen] = useState(false);
   const live = useRef({});
-  live.current = { toggleFull, onNext, onPrev, overlay, keysOpen, fill, show };
+  live.current = { toggleFull, onNext, onPrev, overlay, keysOpen, fill, show, soundGate, onSoundGate };
   useEffect(() => {
     const el = root.current;
     const vol = (dv) => {
@@ -580,6 +586,15 @@ export function AnticonSkin({
         return;
       }
       if (L.overlay) return;
+      // silent by the browser's rule: any key turns sound on; Space or K does only that
+      if (L.soundGate && L.onSoundGate && !e.repeat && !['Shift', 'Tab', 'Escape'].includes(e.key)) {
+        L.onSoundGate();
+        if (e.key === ' ' || e.key === 'k' || e.key === 'K' || e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
       const onSlider = !!e.target.closest?.('[role=slider]');
       const st = store.state;
       const dur = st.duration || 0;
@@ -590,16 +605,13 @@ export function AnticonSkin({
       else if (k === 'Escape' && st.isFullscreen) store.exitFullscreen()?.catch?.(() => {});
       else if ((k === 'ArrowUp' || k === 'ArrowDown') && !onSlider) {
         const up = k === 'ArrowUp';
-        if (L.onNext && !e.shiftKey) {
-          (up ? L.onPrev : L.onNext)();
-          L.show(up ? 'Previous' : 'Next');
-        } else vol(up ? 0.05 : -0.05);
+        // the film changing is answer enough: no big word over the move
+        if (L.onNext && !e.shiftKey) (up ? L.onPrev : L.onNext)();
+        else vol(up ? 0.05 : -0.05);
       } else if ((k === 'n' || k === 'N') && L.onNext) {
         L.onNext();
-        L.show('Next');
       } else if ((k === 'p' || k === 'P') && L.onPrev) {
         L.onPrev();
-        L.show('Previous');
       } else if ((k === 'ArrowLeft' || k === 'ArrowRight') && e.shiftKey && !onSlider) {
         const dv = k === 'ArrowRight' ? 30 : -30;
         store.seek(Math.min(dur, Math.max(0, st.currentTime + dv)));
@@ -725,6 +737,13 @@ export function AnticonSkin({
         return;
       }
       if (G.moved) return;
+      if (live.current.soundGate && live.current.onSoundGate) {
+        // the first tap after the browser silenced the film: sound, not pause
+        clearTimeout(pending);
+        lastTap = null;
+        live.current.onSoundGate();
+        return;
+      }
       const now = performance.now();
       const side = SIDE(e.clientX, G.r);
       // keep tapping a side after a double-tap: ten more seconds each time
@@ -894,7 +913,7 @@ export function AnticonSkin({
       {fine && <Cursor root={root} />}
       {keysOpen && <KeysSheet feed={!!onNext} fine={fine} onClose={() => { setKeysOpen(false); root.current?.focus({ preventScroll: true }); }} />}
 
-      <Gesture type="tap" action="togglePaused" pointer="mouse" />
+      <Gesture type="tap" action="togglePaused" pointer="mouse" disabled={soundGate} />
 
       <Hotkey keys="Space" action="togglePaused" disabled={overlay || keysOpen} />
       <Hotkey keys="k" action="togglePaused" disabled={overlay || keysOpen} />

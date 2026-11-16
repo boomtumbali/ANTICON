@@ -6,15 +6,46 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 Player: **Boom Tumbali** · [contra.com/boomtumbali](https://contra.com/boomtumbali)
 
+**Live:** [anticon-blond.vercel.app](https://anticon-blond.vercel.app) · **Source:** [github.com/boomtumbali/anticon](https://github.com/boomtumbali/anticon)
+
 ---
 
 ## Pages
 
 | Path | What it is |
 | --- | --- |
-| `/` | **The feed.** Ten Blender Studio films, one per screen, under one player that stays put. Scroll (mouse wheel or trackpad, one film per turn), swipe on a phone, or use ↑ ↓ / N P / Page Up / Page Down. Index and Credits open from the corners. |
+| `/` | **The start page, then the feed.** Nothing plays on arrival. The start page says what ANTICON is, lets you try its on/off words, and lays out the ten films. Choose a film, press *Enter, with sound*, or scroll to the end of the page, and the player rises over it. A link with a film in it (`/#sprite-fright`) opens the feed on that film. |
+| `/` (feed) | **The feed.** Ten Blender Studio films, one per screen, under one player that stays put, and they never run out: after Coffee Run comes Singularity again, still moving down. A wheel turn, a swipe, or ↑ ↓ / N P / Page Up / Page Down moves one film. Index and Credits open from the corners; ANTICON at the top goes back to the start page. |
 | `/player/` | **The player lab.** One player put through the screens it will meet (phone upright and sideways, tablet, laptop, desktop, TV, a 16:9 embed, or the free stage) and the pictures that are hardest to read over (white, paper, black, bars, half and half), plus all ten films. A live readout shows the box size, how the words are laid out, how many are resting, and which ink each zone chose. |
 | `/embed/` | **The player on a page.** The standalone player at 16:9, 9:16, 21:9 and 4:3, a thumbnail-width player, and the snippet to use it. |
+
+## The start page
+
+- **The name, switched off.** ANTICON set large and thin, with a hairline drawn through ICON: the anti-icon, struck out the way the player strikes out anything that is off.
+- **Try the words.** Sound, Loop, Captions, Fill: click one and the line runs through it; click again and it lifts.
+- **The ten.** Each film's title set large, with a hairline beside it. Point at a title (or tab to it) and the line opens into a still from the film while the other titles step back. On a phone the stills are shown open. Choose one to start there.
+- **How it plays**, in four short notes, and the credits.
+- **The line along the bottom** fills as you read down, like the player's own progress line. Where it ends, the films begin: the last screen is *Begin*, and scrolling onto it opens the feed.
+
+## Moving between films
+
+The feed is not a scrolling list. One film is on screen; a move is a single timed transition, so a fast trackpad glide or a spinning wheel never throws you three films on.
+
+- **The move.** The leaving film freezes on its last frame, lifts a third of the way up and darkens. The next rises from below with its contents held back (a parallax wipe), a hairline riding its leading edge. One second, on a curve that leaves quickly and settles slowly. Transforms only, so it runs on the compositor.
+- **No flicker.** The arriving film shows its name, large and thin, on black (the films open on black anyway). Its picture fades up only once the browser has painted a real frame. There is no poster to cut away from and no half-loaded black. The frozen frame stays under it until then.
+- **The wheel.** One film per turn. A notched wheel moves one film per notch. A trackpad needs a deliberate push (about 70 px), and after a move the feed waits for the glide to finish before it listens again.
+- **The finger.** The next film follows your finger. Let go past a fifth of the screen, or with a flick, and it settles; otherwise it springs back and the film carries on from where it was.
+- **Endless.** Film 10 is followed by film 1, moving the same way. The corner counts `10 / 10`, then `01 / 10`.
+- **Where you left it.** Go back to a film and it continues from where you left it.
+- Reduced motion turns the move into a short crossfade.
+
+## Sound
+
+Sound is on by default. Browsers only allow a film to start with sound after you have clicked, tapped or pressed a key on the page, so:
+
+- **Enter, with sound**, choosing a film, or any click first: the films play with sound.
+- **Arriving by scrolling, or from a link:** the browser starts the film silent. The Sound word is struck through and the bottom line says *Sound is off · tap anywhere* (or *click or press any key*). That first tap, click or key turns sound on and does nothing else, so it never pauses the film by surprise.
+- Once on, sound follows you from film to film; turn it off and it stays off.
 
 ## The layout
 
@@ -33,15 +64,14 @@ Player: **Boom Tumbali** · [contra.com/boomtumbali](https://contra.com/boomtumb
  Pause                                                                 Full
 
  00:41 ─────────────────────────────────────────────────────────────── 07:05
- Scroll for next  Coffee Run
 ```
 
 - **Top left:** the title, with year and studio in mono below it. In the feed the title opens the film's credits.
-- **Top centre:** the brand (the feed only).
+- **Top centre:** the brand (the feed only); it goes back to the start page.
 - **Top right:** a slot for the host (a clock by default; the feed puts its film count, `09 / 10`, and Index there), plus **Keys** on a computer or **Touch** on a phone, which opens the full shortcut sheet.
 - **Left edge, reading upward:** Play / Pause / Replay, −10, +10, playback rate, CC (only when the film has captions), Loop.
 - **Right edge, reading downward:** Sound with its volume number (drag it, scroll it, or use the arrow keys on it), Fill, PiP, Cast, Full.
-- **Bottom:** elapsed time, the hairline, total time. While you scrub or hover the line, the time you're aiming at shows large and thin in the middle of the picture. Below the line is a slot for the host (the feed shows the next film).
+- **Bottom:** elapsed time, the hairline, total time. While you scrub or hover the line, the time you're aiming at shows large and thin in the middle of the picture. Below the line is a slot for the host (the feed uses it only to say when sound is off).
 - **Cursor:** over the picture the pointer becomes the word *Play* or *Pause*, with the time beneath it, so a click always says what it will do.
 
 ### Adaptive, by the player's own box
@@ -109,7 +139,7 @@ Every jump flashes the result large and thin in the centre (`+10`, `1.5×`, `Sou
 | Pinch | Out to fill, in to fit |
 | Swipe up or down | Next or previous film (feed) |
 
-Vertical swipes are left to the page (`touch-action: pan-y`), so the feed scrolls natively and the player never fights the page it sits in.
+In the feed, vertical swipes belong to the feed (`touch-action: none`), so the browser never scrolls or bounces under the film. The standalone player leaves vertical swipes to its page (`touch-action: pan-y`), so it never fights the page it sits in.
 
 ## Use it
 
@@ -138,14 +168,14 @@ import './anticon.css';
 | `corner` | a clock | Anything for the top right |
 | `tone` | `'adapt'` | `'dark'` or `'light'` to fix the ink |
 
-For a host that needs more (the feed), `AnticonSkin` in `src/player/Skin.jsx` takes the media as children plus `brand`, `below`, `onTitle`, `onNext` / `onPrev`, `onFullscreen`, `loop` / `onLoop` and `overlay`.
+For a host that needs more (the feed), `AnticonSkin` in `src/player/Skin.jsx` takes the media as children plus `brand`, `below`, `onTitle`, `onNext` / `onPrev`, `onFullscreen`, `loop` / `onLoop`, `overlay`, and `soundGate` / `onSoundGate` (the next tap, click or key turns sound on instead of playing or pausing).
 
 ## What it uses from Video.js 10 and Mux
 
 - `createPlayer({ features: videoFeatures })` with the store for play state, time, buffer, volume, rate, captions, PiP, remote playback (Cast / AirPlay), full screen and controls visibility.
 - `Gesture`, `Hotkey` and `StatusAnnouncer` from `@videojs/react`.
-- `MuxVideo` (hls.js through MSE, with a higher starting bandwidth estimate so films open sharp) and `MuxData` for playback analytics in the feed.
-- Mux thumbnails as stills and the ambient blur behind fitted films.
+- `MuxVideo` (hls.js through MSE, starting at a moderate bandwidth estimate so the first frame arrives quickly, then climbing) and `MuxData` for playback analytics in the feed.
+- Mux thumbnails for the start page's stills and the ambient blur behind fitted films.
 
 ## Run it
 
@@ -182,9 +212,27 @@ All by Blender Studio, released under Creative Commons, streamed through Mux.
 | 09 | Sprite Fright | 2021 |
 | 10 | Coffee Run | 2020 |
 
-## Type
+## Type and mark
 
 Inter Tight (variable, thin weights) for words; Geist Mono for numbers and labels. Both are bundled through Fontsource, so nothing loads from a font CDN.
+
+The icon is the A of ANTICON, drawn from Inter Tight itself (converted to an outline, so it looks the same everywhere), with its crossbar run out across the tile: the letter with a line through it. `favicon.svg` for browsers, `favicon-32.png` as a fallback, `apple-touch-icon.png` for phones.
+
+## Files
+
+| Path | What it is |
+| --- | --- |
+| `src/App.jsx` | The site: start page, then the feed and its transition engine |
+| `src/Landing.jsx`, `src/landing.css` | The start page |
+| `src/player/Skin.jsx` | The skin: edges, words, keys, touch, ink |
+| `src/player/AnticonPlayer.jsx` | The standalone player |
+| `src/anticon.css` | The skin's styles, by container queries |
+| `src/IndexPage.jsx` | Index and Credits |
+| `src/lab/`, `player/index.html` | The player lab |
+| `src/embed/`, `embed/index.html` | The player on a page |
+| `src/films.js` | The ten films and their Mux playback IDs |
+| `src/vercel.js` | Vercel Analytics and Speed Insights |
+| `public/test/` | The lab's test cards (white, paper, black, bars, half and half) |
 
 ## Credits
 
