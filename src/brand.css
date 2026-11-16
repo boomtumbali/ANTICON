@@ -51,13 +51,13 @@
  * box: labels in a row keep one baseline. (--ul-x and --ul-b are the label's
  * own padding, so the line runs under the letters, not under the padding.)
  */
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link) {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link) {
   position: relative;
   text-decoration: none !important;
   border-bottom: 0 !important;
   background-image: none !important;
 }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after {
   content: '';
   position: absolute;
   left: var(--ul-x, 0px);
@@ -69,17 +69,17 @@
   transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (hover: hover) {
-  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):hover::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):hover::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
 }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):focus-visible::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):active::after { width: 0; transition-duration: 0.18s; }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):focus-visible::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):active::after { width: 0; transition-duration: 0.18s; }
 /* each label's own padding */
 :root .ac-link { --ul-x: 6px; --ul-b: 8px; }
 :root .ln-nav a { --ul-b: 8px; }
 :root .ln-enter { --ul-x: 6px; --ul-b: 4px; }
 :root .ac-share-copy { --ul-b: 10px; }
 @media (prefers-reduced-motion: reduce) {
-  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after { transition: none; }
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after { transition: none; }
 }
 
 /* a credit's link (Video.js, Mux, Blender Studio): its mark or name in the surrounding ink */

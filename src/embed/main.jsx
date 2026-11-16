@@ -46,6 +46,9 @@ function Page() {
         <nav className="ep-nav">
           <a className="ep-link" href="/">The feed</a>
           <a className="ep-link" href="/player/">Player lab</a>
+          <a className="ep-link" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
+            Source
+          </a>
           <ThemeWord />
         </nav>
       </header>
@@ -105,9 +108,7 @@ function Page() {
         </span>
         <span className="ep-credit">
           <span>Films</span>
-          <span>
-            <BlenderLink />, Creative Commons
-          </span>
+          <BlenderLink />
         </span>
         <span className="ep-credit">
           <span>Vibecoder</span>

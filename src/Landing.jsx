@@ -11,9 +11,8 @@ import { ThemeWord } from './theme.jsx';
  * and lays out the ten films. Choose a film, press Enter, or scroll to the
  * end of the page, and the player rises over it.
  *
- * The page keeps the player's own grammar: words on the edges, a hairline
- * along the bottom that fills as you read down, and the films begin where
- * the line ends.
+ * The page keeps the player's own grammar: words on the edges, and the films
+ * begin where the page ends.
  */
 
 const REPO = 'https://github.com/boomtumbali/anticon';
@@ -31,46 +30,12 @@ function Toggle({ children, init = true }) {
 export function Landing({ hidden, onEnter }) {
   const root = useRef(null);
   const door = useRef(null);
-  const bar = useRef(null);
-  const [where, setWhere] = useState('Intro');
   const enteredBy = useRef(null);
 
   const enter = (i, how = 'choice') => {
     enteredBy.current = how;
     onEnter(i);
   };
-
-  // the hairline along the bottom fills as you read down the page
-  useEffect(() => {
-    let raf = 0;
-    const on = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const max = document.documentElement.scrollHeight - innerHeight;
-        const k = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-        if (bar.current) bar.current.style.transform = `scaleX(${k.toFixed(4)})`;
-      });
-    };
-    on();
-    addEventListener('scroll', on, { passive: true });
-    addEventListener('resize', on);
-    return () => {
-      removeEventListener('scroll', on);
-      removeEventListener('resize', on);
-    };
-  }, []);
-
-  // which part of the page you are in, for the bottom left
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (es) => {
-        for (const e of es) if (e.isIntersecting) setWhere(e.target.dataset.name);
-      },
-      { rootMargin: '-45% 0px -45% 0px' },
-    );
-    root.current.querySelectorAll('[data-name]').forEach((s) => io.observe(s));
-    return () => io.disconnect();
-  }, []);
 
   // the end of the page is the start of the films
   const hiddenRef = useRef(hidden);
@@ -217,7 +182,7 @@ export function Landing({ hidden, onEnter }) {
           <p>
             <span className="ln-mono ln-dim">Films</span>
             <span>
-              <BlenderLink />, Creative Commons
+              <BlenderLink />
             </span>
           </p>
           <p>
@@ -236,13 +201,6 @@ export function Landing({ hidden, onEnter }) {
         <span className="ln-mono ln-dim">The films start here</span>
       </section>
 
-      <div className="ln-bar" aria-hidden="true">
-        <span className="ln-mono">{where}</span>
-        <span className="ln-line">
-          <span ref={bar} />
-        </span>
-        <span className="ln-mono ln-dim">{pad2(FILMS.length)} films</span>
-      </div>
     </div>
   );
 }

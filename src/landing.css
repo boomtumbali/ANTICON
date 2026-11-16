@@ -105,10 +105,6 @@ html[data-loading] .ln-icon::after { animation-play-state: paused; }
 .ln-begin:hover { opacity: 0.75; }
 
 /* ---------- the line along the bottom ---------- */
-.ln-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: grid; grid-template-columns: 9rem minmax(0, 1fr) 9rem; align-items: center; gap: 16px; padding: 14px var(--gut) max(14px, env(safe-area-inset-bottom)); background: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.7)); pointer-events: none; }
-.ln-bar > :last-child { justify-self: end; }
-.ln-line { position: relative; height: 1px; background: rgb(var(--ink-rgb) / 0.2); }
-.ln-line > span { position: absolute; inset: 0; background: var(--ink); transform: scaleX(0); transform-origin: 0 50%; }
 
 /* ---------- smaller screens ---------- */
 @media (max-width: 900px) {
@@ -126,7 +122,6 @@ html[data-loading] .ln-icon::after { animation-play-state: paused; }
   .ln-pic::before { opacity: 0; }
   .ln-edge { display: none; }
   .ln-nav { gap: 14px; }
-  .ln-bar { grid-template-columns: 7rem minmax(0, 1fr) 5.5rem; }
 }
 @media (max-width: 560px) {
   .ln-points { grid-template-columns: 1fr; }
@@ -145,7 +140,6 @@ html[data-loading] .ln-icon::after { animation-play-state: paused; }
 :root[data-theme='light'] .ln { --ink: #121212; --ink-rgb: 18 18 18; --dim: rgb(18 18 18 / 0.56); --rule: rgb(18 18 18 / 0.14); background: #f3f1ec; }
 :root[data-theme='light'] .ln-hero { background: radial-gradient(80% 70% at 50% 46%, #fbfaf7, #f3f1ec 72%); }
 :root[data-theme='light'] .ln-door { background: linear-gradient(#f3f1ec, #ebe8e1); }
-:root[data-theme='light'] .ln-bar { background: linear-gradient(rgb(243 241 236 / 0), rgb(243 241 236 / 0.85)); }
 :root[data-theme='light'] .ln-pic img { background: #e4e1da; }
 :root[data-theme='light'] .ln-pic::before { background: rgb(18 18 18 / 0.3); }
 .ln, .ln-hero, .ln-door { transition: background-color 0.4s var(--ease), color 0.4s var(--ease); }
@@ -154,5 +148,12 @@ html[data-loading] .ln-icon::after { animation-play-state: paused; }
 .ln, :root[data-theme='light'] .ln { --dim: var(--ink); --rule: var(--ink); }
 .ln-lede, .ln-points p, .ln-word[data-off] { color: var(--ink); }
 .ln-edge-r { color: var(--ink) !important; }
-.ln-pic::before, :root[data-theme='light'] .ln-pic::before, .ln-line { background: var(--ink); }
+.ln-pic::before, :root[data-theme='light'] .ln-pic::before { background: var(--ink); }
 .ln-nav a:hover, .ln-word:hover, .ln-begin:hover { opacity: 1; }
+
+/* portrait: the mark on its own line, the pages and the Light word on the next (as on every page) */
+@media (max-width: 640px), (orientation: portrait) and (max-width: 1100px) {
+  .ln-top { flex-direction: column; align-items: flex-start; flex-wrap: nowrap; gap: 6px; }
+  .ln-nav { gap: 22px; }
+}
+.ln-list:hover .ln-row:not(:hover) { opacity: 1; }

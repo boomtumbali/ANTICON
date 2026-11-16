@@ -133,7 +133,7 @@ button.ac-title { cursor: pointer; }
 .ac-flash { display: grid; justify-items: center; gap: 14px; font: 250 clamp(20px, 4.4cqmin, 44px)/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; margin-right: -0.08em; }
 .ac-flash[data-held] { animation: ac-flash-in 0.2s var(--ease) both; }
 @keyframes ac-flash-in { from { opacity: 0; } }
-/* how loud: a hairline that fills */
+/* (the volume answers in words only: SOUND 64) */
 .ac-meter { position: relative; display: block; width: clamp(120px, 22cqmin, 240px); height: 1px; background: rgb(var(--fg-rgb) / 0.28); }
 .ac-meter > span { position: absolute; inset: 0; background: currentColor; transform-origin: 0 50%; transition: transform 0.08s linear; }
 .ac-flash { animation: ac-flash 0.7s var(--ease) both; }
@@ -173,14 +173,26 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 
 /* ---------- adapting to the box ---------- */
 
-/* shorter boxes keep the brand's edges: the words still stand up both sides, closer together, and the less-used
-   ones rest (their keys still work). Play, Sound and Full never go: every size can still play, hear and go full. */
+/* shorter boxes keep the brand's edges: the words still stand up both sides, smaller and closer together, and only
+   the least-used rest (their keys still work). What rests, by height:
+     420 px and under (a phone on its side, a cinema-strip embed): PiP and Cast (pri 3)
+     370 px and under: also -10, +10, speed and Loop (pri 2; double-tap a side still skips)
+     300 px and under (a thumbnail): also CC, Fill and quality (pri 1)
+   Play, Sound and Full never go: every size can still play, hear and go full. */
 @container ac (max-height: 599px) {
   .ac-left, .ac-right { gap: clamp(4px, 1.6cqh, 12px); }
-  [data-pri='3'] { display: none; }
 }
 @container ac (max-height: 420px) {
+  [data-pri='3'] { display: none; }
+  .ac-mono, .ac-link, .ac-word, .ac-vol { font-size: 9.5px; letter-spacing: 0.1em; }
+  .ac-left, .ac-right { gap: 2px; }
+  .ac-left .ac-word, .ac-right .ac-word, .ac-right .ac-vol { padding-inline: 5px; }
+}
+@container ac (max-height: 370px) {
   [data-pri='2'] { display: none; }
+}
+@container ac (max-height: 300px) {
+  [data-pri='1'] { display: none; }
 }
 /* narrow and tall (a phone held upright): the edges keep their axes; the title gives the corner room */
 @container ac (max-width: 520px) and (min-height: 600px) {
@@ -374,3 +386,12 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 /* hover never dims a word: the line under it is the answer */
 .ac-link:hover, .ac-word:hover, .ac-vol:hover, .ac-share-places .ac-share-word:hover, .ac-share-word:hover { opacity: 1; }
 .ac-gate { animation: none !important; }
+/* the sheets (Index, Credits, Share, Keys): solid black; their name sits where the film's title sits, at its size,
+   and Close sits on the corner's line, where Share and Keys were */
+.ac-ix, .ac-keys, .ac-share { background: #000; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.ac-keys-top { align-items: flex-start; }
+.ac-keys-title { font: 300 clamp(18px, 3.3cqmin, 40px)/1.06 var(--sans); letter-spacing: -0.015em; }
+.ac-keys-top .ac-link { margin-top: -8px; }
+.ac-ix-top { margin-top: -8px; min-height: 0; }
+@container ac (max-width: 520px) and (min-height: 600px) { .ac-keys-title { font-size: clamp(20px, 6.4cqw, 28px); } }
+@container ac (max-height: 300px) { .ac-keys-title { font-size: 15px; } }

@@ -39,3 +39,10 @@ body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
 /* one ink: no greys. Every word and rule on the page is the page's ink, solid. */
 .ep-kicker, .ep-intro p:last-child, .ep-fig figcaption, .ep-code p, .ep-built, .ep-credit { color: rgb(var(--ep-ink-rgb)); }
 .ep-head, .ep-foot { border-color: rgb(var(--ep-ink-rgb)); }
+
+/* portrait: the mark on its own line, the pages and the Light word on the next (as on every page) */
+@media (max-width: 640px), (orientation: portrait) and (max-width: 1100px) {
+  .ep-head { grid-template-columns: 1fr; justify-items: start; gap: 6px; }
+  .ep-built { display: none; }
+  .ep-nav { justify-self: start; gap: 22px; }
+}

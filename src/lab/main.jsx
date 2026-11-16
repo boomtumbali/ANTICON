@@ -14,21 +14,24 @@ import { ThemeWord } from '../theme.jsx';
 
 /*
  * The player lab. One ANTICON player, put through the screens it will meet
- * (phone either way, tablet, laptop, desktop, TV, or whatever the window is)
- * and the pictures that are hardest to read over (white, paper, black, bars,
- * half and half). The readout says what the skin decided: its box, how the
- * edges are set, and which text colour each edge chose.
+ * (phone either way, tablet, laptop, desktop, TV, an embed, or the stage
+ * itself) and the pictures that are hardest to read over (white, paper,
+ * black, bars, half and half), and the ten films.
+ *
+ * Wide screens choose from two lists beside the stage. Phones and portrait
+ * screens put the player first, full width, and choose from two rows of words
+ * that slide sideways under the thumb.
  */
 
 const SCREENS = [
   { id: 'phone', name: 'Phone', w: 390, h: 844 },
-  { id: 'phone-side', name: 'Phone, sideways', w: 844, h: 390 },
+  { id: 'phone-side', name: 'Phone sideways', w: 844, h: 390 },
   { id: 'tablet', name: 'Tablet', w: 820, h: 1180 },
   { id: 'laptop', name: 'Laptop', w: 1280, h: 800 },
   { id: 'desktop', name: 'Desktop', w: 1440, h: 900 },
   { id: 'tv', name: 'Television', w: 1920, h: 1080 },
-  { id: 'embed', name: 'Embed, 16 : 9', w: 640, h: 360 },
-  { id: 'free', name: 'Free (the stage)', w: 0, h: 0 },
+  { id: 'embed', name: 'Embed 16:9', w: 640, h: 360 },
+  { id: 'free', name: 'The stage', w: 0, h: 0 },
 ];
 const CARDS = [
   { id: 'white', name: 'White', src: '/test/white.mp4' },
@@ -37,6 +40,7 @@ const CARDS = [
   { id: 'bars', name: 'Bars', src: '/test/bars.mp4' },
   { id: 'split', name: 'Half and half', src: '/test/split.mp4' },
 ];
+const NARROW = '(max-width: 899px), (orientation: portrait) and (max-width: 1100px)';
 
 const read = (key, fallback) => {
   try {
@@ -52,18 +56,36 @@ const keep = (key, v) => {
     /* private window: fine */
   }
 };
+function useMatch(q) {
+  const [m, setM] = useState(() => matchMedia(q).matches);
+  useEffect(() => {
+    const mq = matchMedia(q);
+    const on = () => setM(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [q]);
+  return m;
+}
 
-/** A choice among words: the chosen one carries a short rule before it. */
-function Choice({ label, items, value, onChange }) {
+/** A choice among words: the chosen one carries a dash before it. A list beside the stage, or a row that slides. */
+function Choice({ label, items, value, onChange, row }) {
+  const list = useRef(null);
+  // in a row, keep the chosen word in view
+  useEffect(() => {
+    if (!row) return;
+    const el = list.current?.querySelector('[aria-checked="true"]');
+    el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }, [row, value]);
   return (
-    <div className="lab-group" role="radiogroup" aria-label={label}>
+    <div className={row ? 'lab-group lab-group--row' : 'lab-group'} role="radiogroup" aria-label={label}>
       <p className="lab-label">{label}</p>
-      <ul>
+      <ul ref={list}>
         {items.map((it) => (
           <li key={it.id}>
             <button type="button" role="radio" aria-checked={value === it.id} className="lab-opt" onClick={() => onChange(it.id)}>
-              <span>{it.name}</span>
-              {it.note && <span className="lab-note">{it.note}</span>}
+              <span className="lab-dash" aria-hidden="true">–</span>
+              <span className="lab-name">{it.name}</span>
+              {!row && it.note && <span className="lab-note">{it.note}</span>}
             </button>
           </li>
         ))}
@@ -73,23 +95,32 @@ function Choice({ label, items, value, onChange }) {
 }
 
 function Lab() {
-  const [screen, setScreen] = useState(() => read('screen', matchMedia('(max-width: 800px)').matches ? 'free' : 'phone-side'));
+  const narrow = useMatch(NARROW);
+  const [screen, setScreen] = useState(() => read('screen', matchMedia(NARROW).matches ? 'free' : 'phone-side'));
   const [pic, setPic] = useState(() => read('pic', 'sprite-fright'));
   useEffect(() => keep('screen', screen), [screen]);
   useEffect(() => keep('pic', pic), [pic]);
 
-  // the stage measures itself; a screen bigger than the stage is shown scaled down, at its true size inside
+  // the stage measures itself; a screen bigger than the stage is shown scaled down, at its true size inside.
+  // On a narrow screen the stage is the page's width, and as tall as the screen allows with the choices in reach.
   const stage = useRef(null);
   const [room, setRoom] = useState({ w: 800, h: 500 });
+  const [vh, setVh] = useState(() => innerHeight);
   useLayoutEffect(() => {
     const ro = new ResizeObserver(([e]) => setRoom({ w: e.contentRect.width, h: e.contentRect.height }));
     ro.observe(stage.current);
-    return () => ro.disconnect();
+    const on = () => setVh(innerHeight);
+    addEventListener('resize', on);
+    return () => {
+      ro.disconnect();
+      removeEventListener('resize', on);
+    };
   }, []);
+  const roomH = narrow ? Math.max(240, Math.round(vh * 0.6)) : room.h;
   const sc = SCREENS.find((s) => s.id === screen) ?? SCREENS[0];
   const w = sc.id === 'free' ? Math.floor(room.w) : sc.w;
-  const h = sc.id === 'free' ? Math.floor(room.h) : sc.h;
-  const k = Math.min(1, room.w / w, room.h / h);
+  const h = sc.id === 'free' ? Math.floor(narrow ? Math.min(roomH, (room.w * 9) / 16) : room.h) : sc.h;
+  const k = Math.min(1, room.w / w, roomH / h);
 
   const film = FILMS.find((f) => f.id === pic);
   const card = CARDS.find((c) => c.id === pic);
@@ -97,59 +128,35 @@ function Lab() {
     ? { src: card.src, title: card.name, meta: 'Test card' }
     : { ...(LOCAL ? { src: localSrc(film), storyboard: storyboardOf(film) } : { playbackId: film.playbackId }), title: film.title, meta: `${film.year} · ${film.studio}` };
 
-  // what the skin decided, read back from it
-  const [out, setOut] = useState(null);
-  useEffect(() => {
-    const id = setInterval(() => {
-      const ac = stage.current?.querySelector('.ac');
-      if (!ac) return;
-      const left = ac.querySelector('.ac-left');
-      const d = ac.dataset;
-      setOut({
-        box: `${ac.clientWidth} × ${ac.clientHeight}`,
-        edges: left && getComputedStyle(left).writingMode.startsWith('vertical') ? 'Along both edges' : 'Along the bottom',
-        hidden: [...ac.querySelectorAll('.ac-edges [data-pri]')].filter((e) => getComputedStyle(e).display === 'none').length,
-        text: [['tl', 'title'], ['tr', 'corner'], ['left', 'left'], ['right', 'right'], ['bottom', 'bottom']].map(([z, n]) => `${n} ${{ light: 'dark', mixed: 'light, haloed' }[d[`tone${z[0].toUpperCase()}${z.slice(1)}`]] ?? 'light'}`).join(' · '),
-      });
-    }, 300);
-    return () => clearInterval(id);
-  }, []);
+  const screens = SCREENS.map((s) => ({ ...s, note: s.w ? `${s.w} × ${s.h}` : null }));
+  const pictures = [...CARDS.map((c) => ({ id: c.id, name: c.name, note: 'card' })), ...FILMS.map((f) => ({ id: f.id, name: f.title, note: String(f.year) }))];
 
   return (
-    <div className="lab">
+    <div className="lab" data-narrow={narrow || undefined}>
       <header className="lab-head">
         <a className="lab-brand" href="/" aria-label="ANTICON, the start">
           <Wordmark />
         </a>
         <span className="lab-title">Player lab</span>
-        <span className="lab-built">
-          <span>Built on</span>
-          <VideoJsLink height={13} />
-          <ThemeWord className="lab-theme" />
-        </span>
+        <nav className="lab-nav" aria-label="Pages">
+          <span className="lab-built">
+            <span>Built on</span>
+            <VideoJsLink height={13} />
+          </span>
+          <a className="lab-navlink" href="/">
+            The feed
+          </a>
+          <a className="lab-navlink" href="/embed/">
+            Embed
+          </a>
+          <a className="lab-navlink" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
+            Source
+          </a>
+          <ThemeWord />
+        </nav>
       </header>
 
-      <aside className="lab-side">
-        <Choice label="Screen" value={screen} onChange={setScreen} items={SCREENS.map((s) => ({ ...s, note: s.w ? `${s.w} × ${s.h}` : null }))} />
-        <Choice
-          label="Picture"
-          value={pic}
-          onChange={setPic}
-          items={[...CARDS.map((c) => ({ id: c.id, name: c.name, note: 'card' })), ...FILMS.map((f) => ({ id: f.id, name: f.title, note: String(f.year) }))]}
-        />
-        <nav className="lab-links" aria-label="Pages">
-          <a href="/">The feed</a>
-          <a href="/embed/">The player on a page</a>
-        </nav>
-        <p className="lab-credit">
-          <span>Vibecoder</span>
-          <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-            @boomtumbali
-          </a>
-        </p>
-      </aside>
-
-      <main className="lab-stage" ref={stage}>
+      <main className="lab-stage" ref={stage} style={narrow ? { height: Math.round(h * k) } : undefined}>
         <div className="lab-frame" style={{ width: w * k, height: h * k }}>
           <div style={{ width: w, height: h, transform: `scale(${k})`, transformOrigin: '0 0' }}>
             <AnticonPlayer key={`${pic}`} {...media} autoPlay aspect={null} style={{ width: w, height: h }} />
@@ -157,23 +164,24 @@ function Lab() {
         </div>
       </main>
 
-      <footer className="lab-read" aria-live="polite">
-        {out && (
-          <>
-            <span>
-              <b>Box</b> {out.box}
-              {k < 1 && <span className="lab-note"> shown at {Math.round(k * 100)}%</span>}
-            </span>
-            <span>
-              <b>Words</b> {out.edges}
-              {out.hidden > 0 && <span className="lab-note"> · {out.hidden} resting</span>}
-            </span>
-            <span>
-              <b>Text colour</b> {out.text}
-            </span>
-          </>
-        )}
-      </footer>
+      <aside className="lab-side">
+        <Choice label="Screen" value={screen} onChange={setScreen} items={screens} row={narrow} />
+        <Choice label="Picture" value={pic} onChange={setPic} items={pictures} row={narrow} />
+        <nav className="lab-links" aria-label="More">
+          <a className="lab-sidelink" href="/">
+            The feed
+          </a>
+          <a className="lab-sidelink" href="/embed/">
+            The player on a page
+          </a>
+          <a className="lab-sidelink" href="https://github.com/boomtumbali/anticon" target="_blank" rel="noreferrer">
+            Source
+          </a>
+          <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
+            @boomtumbali
+          </a>
+        </nav>
+      </aside>
     </div>
   );
 }

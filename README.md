@@ -38,15 +38,15 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 **The player lab.** Every screen size, and the pictures hardest to read over.
 
-![The player lab at laptop size on a white test card, with the readout of which colour each edge's words took](docs/lab.jpg)
+![The player lab at laptop size on a white test card: the screens and pictures listed beside the stage, the words turned dark over the white](docs/lab.jpg)
 
 ## Pages
 
 | Path | What it is |
 | --- | --- |
 | `/` | The start page, then the feed: ten Blender Studio films, newest first, one per screen, under one player that stays put. They never run out: after the tenth comes the first again. |
-| `/film/<id>` | A film's own link (for sharing): it previews with that film's card and opens the feed on it. `?t=95` starts it 95 seconds in. |
-| `/player/` | The player lab: one player at every screen size (phone, tablet, laptop, desktop, TV, embed) over the hardest pictures (white, paper, black, bars, half and half) and all ten films, with a live readout of what the skin decided. |
+| `/film/<id>` | A film's own link (for sharing): it previews with that film's card and opens the feed on it. |
+| `/player/` | The player lab: one player at every screen size (phone, tablet, laptop, desktop, TV, embed) over the hardest pictures (white, paper, black, bars, half and half) and all ten films. On a phone, the player comes first and the choices slide sideways under it. |
 | `/embed/` | The standalone player on an ordinary page, at 16:9, 9:16, 21:9, 4:3 and thumbnail size, with the code to use it. |
 
 Every page has a **Light** word in its header (struck through while the page is dark, the default). The choice is shared by all pages; the player itself stays dark.
@@ -57,9 +57,9 @@ Every page has a **Light** word in its header (struck through while the page is 
 - **Adaptive by its own box.** Container queries, not the window. The words always stand up both edges, at every size: shorter boxes set them closer together and rest the less-used ones (their keys still work), down to Play on the left and Sound and Full on the right in a thumbnail. Nothing overlaps at any size from a 300 px thumbnail to a TV.
 - **One ink, solid.** Every word, number and line is solid white, or solid black where the picture under it is bright: a few times a second the skin reads the frame under each group of words and each group decides for itself. No greys, no shadows, no veils; hierarchy is size alone.
 - **The filmstrip.** While you scrub (drag the picture sideways, slide on a phone, or point at the progress line), a band opens across the middle holding the film's frames from Mux's storyboard. The pointed time sits left of the centre line, the length right of it.
-- **Volume by dragging.** Drag the picture up or down (on a phone: hold, then slide). The middle shows `SOUND 64` over a line that fills.
-- **Quality.** `AUTO 720` (the height playing now) or the size you chose; each click, or Q, steps through Auto and every size the stream offers, highest first.
-- **Share.** A Share word in the corner opens the link with *Copy link*, *From 02:41* (start where you are), and X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
+- **Volume by dragging.** Drag the picture up or down (on a phone: hold, then slide). The middle shows `SOUND 64`.
+- **Quality.** `AUTO`, or the size you chose (`1080P`, `720P` …); each click, or Q, steps through Auto and every size the stream offers, highest first.
+- **Share.** A Share word in the corner opens the link with one row of words: *Copy link*, X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
 - **Captions.** CC shows the stream's own captions (Mux's), set by the skin rather than the browser, so they look the same everywhere: Inter Tight at a reading weight, warm white on a dark box that hugs each line. They sit just above the time and the line, and settle lower when the words fade. iOS full screen and picture in picture keep the system's own captions.
 - **Answers in the middle.** Keys and taps answer in thin capitals, at a size you read and forget: `PLAY`, `+10`, `1.5×`, `SOUND 40`.
 - **Sound by default.** Browsers allow sound after the first click, tap or key, so *Enter* and choosing a film start with sound. Arriving by scrolling or from a link, the film starts silent and says so; the first tap, click or key turns sound on and does nothing else.
@@ -167,4 +167,4 @@ All by Blender Studio, released under Creative Commons, streamed through Mux. Ne
 
 ## Credits
 
-Vibecoded by [@boomtumbali](https://contra.com/boomtumbali). Built on Video.js 10. Streams hosted on Mux. Films by Blender Studio, Creative Commons.
+Vibecoded by [@boomtumbali](https://contra.com/boomtumbali). Built on [Video.js](https://videojs.com). Streams on [Mux](https://www.mux.com). Films by [Blender Studio](https://studio.blender.org).

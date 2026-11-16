@@ -91,7 +91,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
         ))}
       </ol>
       <p className="ac-ix-foot">
-        ANTICON, a <VideoJsLink mark={false} /> player with no icons: only words and numbers. Ten <BlenderLink /> open movies (Creative Commons), hosted on <MuxLink mark={false} />.
+        ANTICON, a <VideoJsLink mark={false} /> player with no icons: only words and numbers. Ten <BlenderLink /> open movies, hosted on <MuxLink mark={false} />.
         <span className="ac-ix-keys">
           Vibecoder <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
         </span>
@@ -168,10 +168,6 @@ export function Credits({ film, open, onClose, onHome }) {
             <div>
               <dt>Kind</dt>
               <dd>Open movie, made with Blender</dd>
-            </div>
-            <div>
-              <dt>License</dt>
-              <dd>Creative Commons</dd>
             </div>
             <div>
               <dt>Vibecoder</dt>

@@ -417,9 +417,6 @@ function Feed({ start, closing, onExit, onClosed }) {
 
   const corner = (
     <span className="ac-corner">
-      <span className="ac-mono" aria-label={`Film ${film.n} of ${N}`}>
-        {pad2(film.n)} <span className="ac-dim">/ {pad2(N)}</span>
-      </span>
       <button type="button" className="ac-link" onClick={() => setPage('index')} aria-haspopup="dialog">
         Index
       </button>
@@ -457,7 +454,6 @@ function Feed({ start, closing, onExit, onClosed }) {
         url: `${location.origin}/film/${film.id}`,
         title: film.subtitle ? `${film.title}: ${film.subtitle}` : film.title,
         text: `${film.title} (${film.year}), on ANTICON`,
-        timed: true,
       }}
       label={`ANTICON, ${film.title}, film ${film.n} of ${N}`}
     >
@@ -550,6 +546,9 @@ function Slide({ p, film, front, playing, shown, els, soundPref, from, loop, onE
   );
 }
 
+/** The volume you set, carried from film to film (each film is a new video element, which starts at full). */
+let feedVolume = 1;
+
 /** The one film that plays. Hidden until it has a frame to show, then it fades up. */
 function Film({ film, visible, soundPref, from, loop, onReady, onEnded, onSilenced, onSound }) {
   const ref = useRef(null);
@@ -585,7 +584,9 @@ function Film({ film, visible, soundPref, from, loop, onReady, onEnded, onSilenc
       if (from > 1 && v.duration && from < v.duration - 2) v.currentTime = from;
     };
     const onVol = () => {
-      if (!forcing.current) cb.current.onSound(!v.muted);
+      if (forcing.current) return;
+      cb.current.onSound(!v.muted);
+      if (v.volume > 0) feedVolume = v.volume;
     };
     const onEnd = () => !v.loop && cb.current.onEnded();
     // a stream can attach after the first play() call: ask again once it can play, until it has started
@@ -601,6 +602,7 @@ function Film({ film, visible, soundPref, from, loop, onReady, onEnded, onSilenc
     if (v.readyState >= 1) onMeta();
     // sound first; if the browser refuses, play silent and say so
     forcing.current = true;
+    v.volume = feedVolume;
     v.muted = !soundPref.current;
     forcing.current = false;
     const tryPlay = v.play?.();

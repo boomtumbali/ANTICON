@@ -272,7 +272,7 @@ const qualityOrder = (q) => {
   const px = (o) => parseInt(o.label, 10) || 0;
   return [...q.options].sort((a, b) => (a.value === 'auto' ? -1 : b.value === 'auto' ? 1 : px(b) - px(a)));
 };
-function QualityWord({ q, active, pri }) {
+function QualityWord({ q, pri }) {
   if (!q || q.hidden || q.options.length < 3) return null;
   const opts = qualityOrder(q);
   const auto = q.value === 'auto';
@@ -281,10 +281,7 @@ function QualityWord({ q, active, pri }) {
   const next = opts[(i + 1) % opts.length];
   return (
     <button type="button" className="ac-word ac-act ac-q" data-pri={pri} onClick={() => q.setValue(next.value)} aria-label={`Quality ${auto ? 'automatic' : word(opts[i])}. Change to ${word(next)}`}>
-      <span>
-        {auto ? 'Auto' : word(opts[i])}
-        {auto && active?.height ? <span className="ac-dim"> {active.height}</span> : null}
-      </span>
+      <span>{auto ? 'Auto' : word(opts[i])}</span>
     </button>
   );
 }
@@ -452,7 +449,7 @@ function Filmstrip({ peek, sb, duration }) {
 /**
  * Share: the link, a word to copy it, and the places to post it, all words.
  * The feed shares each film's own page (/film/<id>), which link previews show
- * with that film's card; "From 02:41" adds where you are in the film.
+ * with that film's card.
  * Where the device has its own share sheet (phones), "More" opens it.
  */
 function copyText(text) {
@@ -473,15 +470,14 @@ function copyText(text) {
     }
   });
 }
-function SharePanel({ share, t, onClose }) {
+function SharePanel({ share, onClose }) {
   const ref = useRef(null);
-  const [at, setAt] = useState(false);
   const [copied, setCopied] = useState(null); // 'yes' | 'no'
+  // the sheet itself takes the keyboard (Tab goes on to Copy link); nothing is drawn as focused for a mouse or a finger
   useEffect(() => {
-    ref.current?.querySelector('.ac-share-copy')?.focus({ preventScroll: true });
+    ref.current?.focus({ preventScroll: true });
   }, []);
-  const start = Math.floor(t || 0);
-  const url = share.timed && at && start > 0 ? `${share.url}${share.url.includes('?') ? '&' : '?'}t=${start}` : share.url;
+  const url = share.url;
   const text = share.text || share.title || 'ANTICON';
   const enc = encodeURIComponent;
   const places = [
@@ -503,7 +499,7 @@ function SharePanel({ share, t, onClose }) {
     return () => clearTimeout(id);
   }, [copied]);
   return (
-    <div className="ac-share" role="dialog" aria-modal="true" aria-label="Share" ref={ref}>
+    <div className="ac-share" role="dialog" aria-modal="true" aria-label="Share" ref={ref} tabIndex={-1}>
       <div className="ac-keys-top">
         <span className="ac-keys-title">Share</span>
         <button type="button" className="ac-link" onClick={onClose}>
@@ -517,13 +513,6 @@ function SharePanel({ share, t, onClose }) {
           <button type="button" className="ac-share-word ac-share-copy" onClick={copy}>
             <span>{copied === 'yes' ? 'Copied' : copied === 'no' ? 'Select and copy above' : 'Copy link'}</span>
           </button>
-          {share.timed && start > 0 && (
-            <button type="button" className="ac-share-word" aria-pressed={at} data-off={!at || undefined} onClick={() => setAt(!at)}>
-              <span>From {clock(start)}</span>
-            </button>
-          )}
-        </div>
-        <div className="ac-share-row ac-share-places">
           {places.map(([name, href]) => (
             <a key={name} className="ac-share-word" href={href} target="_blank" rel="noreferrer noopener">
               <span>{name}</span>
@@ -663,7 +652,7 @@ function KeysSheet({ feed, fine, onClose }) {
     ['Keep tapping', '10 more each time'],
     ['Double-tap the middle', 'Fill or fit'],
     ['Hold', 'Twice the speed, while you hold'],
-    ['Slide sideways', 'Scrub, up to three minutes across'],
+    ['Slide sideways', 'Scrub, with the film\'s frames'],
     ['Hold, then slide up or down', 'Volume'],
     ['Hold, then slide sideways', 'Scrub'],
     ['Pinch', 'Out to fill, in to fit'],
@@ -713,7 +702,7 @@ function KeysSheet({ feed, fine, onClose }) {
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
  *   storyboard         a storyboard address (Mux: storyboard.json): scrubbing shows the film's frames as a strip
- *   share              { url, title, text, timed } for the Share word (default: this page); false hides it
+ *   share              { url, title, text } for the Share word (default: this page); false hides it
  *   soundGate, onSoundGate   the browser started the film silent: the next tap, click or key turns sound on
  *                      (inside that gesture, so every browser allows it) instead of playing or pausing
  */
@@ -773,7 +762,6 @@ export function AnticonSkin({
   const fsOn = usePlayer((s) => s.isFullscreen);
   const controlsVisible = usePlayer((s) => s.controlsVisible);
   const q = useQualityOptions();
-  const activeRendition = usePlayer((s) => s.activeVideoRendition);
   const [fillPref, setFillPref] = useState(null);
   const fill = fillPref ?? defaultFill;
   const [peek, setPeek] = useState(null);
@@ -915,15 +903,17 @@ export function AnticonSkin({
     (p ? store.play() : store.pause())?.catch?.(() => {});
     show(p ? 'Play' : 'Pause');
   }, [store, show]);
-  // a drag on the picture, by mouse or by a held finger: sideways scrubs (the strip shows the frames), up or down is the volume
+  // a drag on the picture, by mouse or by a held finger: sideways scrubs exactly as the line does (the same scale,
+  // the film follows as you go, the strip shows the frames, nothing is announced); up or down is the volume
   const drag = useCallback(
     (g, dx, dy) => {
       const r = g.r;
       if (g.mode === 'scrub') {
         const dur = store.state.duration;
-        const span = Math.min(dur, 180); // the width of the player covers up to three minutes
-        g.to = Math.min(dur, Math.max(0, g.from + (dx / r.width) * span));
+        const line = root.current?.querySelector('.ac-scrub')?.getBoundingClientRect().width || r.width;
+        g.to = Math.min(dur, Math.max(0, g.from + (dx / line) * dur));
         setPeek(g.to);
+        store.seek(g.to);
       } else if (g.mode === 'vol') {
         if (store.state.volumeAvailability !== 'available') {
           showHeld('Use the volume buttons');
@@ -942,11 +932,8 @@ export function AnticonSkin({
   const dragEnd = useCallback(
     (g, cancelled) => {
       if (g.mode === 'scrub') {
-        if (!cancelled && g.to != null) {
-          store.seek(g.to);
-          const dv = Math.round(g.to - g.from);
-          show(`${dv < 0 ? '−' : '+'}${Math.abs(dv)} s`);
-        }
+        if (cancelled && g.from != null) store.seek(g.from);
+        else if (g.to != null) store.seek(g.to);
         setPeek(null);
       } else if (g.mode === 'vol') release();
     },
@@ -1276,14 +1263,14 @@ export function AnticonSkin({
           <Act onClick={() => seekBy(10)} label="Forward 10 seconds" pri="2">
             +10
           </Act>
-          <Act onClick={() => store.setPlaybackRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length] ?? 1)} label={`Speed ${rate} times. Change speed`} pri="3">
+          <Act onClick={() => store.setPlaybackRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length] ?? 1)} label={`Speed ${rate} times. Change speed`} pri="2">
             {rate}×
           </Act>
-          <Word on={ccShowing} hidden={!hasCC} onClick={() => store.toggleSubtitles()} label="Captions" pri="3">
+          <Word on={ccShowing} hidden={!hasCC} onClick={() => store.toggleSubtitles()} label="Captions" pri="1">
             CC
           </Word>
           {onLoop && (
-            <Word on={!!loop} onClick={() => onLoop(!loop)} label="Loop" pri="3">
+            <Word on={!!loop} onClick={() => onLoop(!loop)} label="Loop" pri="2">
               Loop
             </Word>
           )}
@@ -1297,10 +1284,10 @@ export function AnticonSkin({
             </Word>
             {volAvail === 'available' && <VolumeNumber value={muted ? 0 : volume} />}
           </span>
-          <Word on={fill} onClick={() => setFillPref(!fill)} label="Fill the frame" pri="2">
+          <Word on={fill} onClick={() => setFillPref(!fill)} label="Fill the frame" pri="1">
             Fill
           </Word>
-          <QualityWord q={q} active={activeRendition} pri="3" />
+          <QualityWord q={q} pri="1" />
           <Word on={pip} hidden={pipAvail !== 'available'} onClick={() => (pip ? store.exitPictureInPicture() : store.requestPictureInPicture())?.catch?.(() => {})} label="Picture in picture" pri="3">
             PiP
           </Word>
@@ -1333,17 +1320,11 @@ export function AnticonSkin({
       {flash && (
         <p className="ac-flash" data-side={flash.side} data-held={flash.held || flash.hold || undefined} key={flash.k} aria-hidden="true">
           <span>{flash.text}</span>
-          {flash.level != null && (
-            <span className="ac-meter">
-              <span style={{ transform: `scaleX(${flash.level})` }} />
-            </span>
-          )}
         </p>
       )}
       {shareOpen && shareInfo && (
         <SharePanel
           share={shareInfo}
-          t={t}
           onClose={() => {
             setShareOpen(false);
             root.current?.focus({ preventScroll: true });
