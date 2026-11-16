@@ -98,7 +98,7 @@
 :root :is(.theme-word, .ln-word, .ac-share-word) > span::after { height: 0; background: none; border-top: 1px solid currentColor; }
 
 /* ---------- the site's header: one for every page (the start page's was the model) ---------- */
-.site-top { --site-gut: clamp(16px, 3vw, 40px); box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 6px 24px; padding: max(var(--site-gut), env(safe-area-inset-top)) var(--site-gut) 0; }
+.site-top { --site-gut: clamp(16px, 3vw, 40px); box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 6px 24px; padding: max(clamp(14px, 3vmin, 34px), env(safe-area-inset-top)) var(--site-gut) 0; }
 .site-brand { display: inline-flex; color: inherit; text-decoration: none; padding: 8px 0; font: 500 13px/1 'Inter Tight Variable', sans-serif; }
 .site-nav { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 30px); }
 .site-nav a { font: 400 10.5px/1 'Geist Mono Variable', ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; color: inherit; padding: 8px 0; }
@@ -111,5 +111,5 @@
 }
 
 /* the header sits on a hairline that runs the full width of the page, on every page */
-.site-top { padding-bottom: clamp(12px, 1.6vw, 18px); border-bottom: 1px solid currentColor; }
+.site-top { padding-bottom: clamp(10px, 1.8vmin, 18px); border-bottom: 1px solid currentColor; }
 :root .ep-copy { --ul-x: 4px; --ul-b: 8px; }

@@ -26,14 +26,14 @@
 .ln :focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 
 /* ---------- the top: brand left, pages right ---------- */
-.ln-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
+.ln-top { position: relative; z-index: 3; }
 .ln-brand { font: 500 13px/1 var(--sans); text-decoration: none; padding: 8px 0; }
 .ln-nav { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 30px); }
 .ln-nav a { font: 400 10.5px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; padding: 8px 0; }
 .ln-nav a:hover { opacity: 0.65; }
 
 /* ---------- the hero: the name, with the icon struck out ---------- */
-.ln-hero { position: relative; min-height: 100svh; display: grid; align-content: center; justify-items: center; gap: clamp(16px, 3vh, 30px); padding: 88px var(--gut) 96px; text-align: center;
+.ln-hero { position: relative; min-height: calc(100svh - var(--site-head, 0px)); display: grid; align-content: center; justify-items: center; gap: clamp(16px, 3vh, 30px); padding: clamp(28px, 6vh, 72px) var(--gut) clamp(40px, 8vh, 96px); text-align: center;
   background: radial-gradient(80% 70% at 50% 46%, #101010, #000 72%); }
 .ln-kicker { margin: 0; color: var(--dim); }
 .ln-mark { margin: 0; font: 150 clamp(60px, min(17.5vw, 31svh), 330px)/0.86 var(--sans); letter-spacing: 0.02em; margin-right: -0.02em; white-space: nowrap; }
@@ -154,3 +154,21 @@ html[data-loading] .ln-icon::after { animation-play-state: paused; }
 
 /* the films begin under a hairline that runs the full width of the page, as How it plays does */
 .ln-ten { border-top: 1px solid var(--rule); }
+
+/* Enter: in capitals, a step smaller, still the largest thing in the call to action. Its 1 px line (the same weight
+   as every line on a word) draws itself on a slow loop, so the way in is shown without a sound: in from the left,
+   a rest, out to the right, a pause. Under the hand the line simply stays. */
+:root .ln-enter { font: 250 clamp(22px, 2vw, 32px)/1.1 var(--sans) !important; letter-spacing: 0.08em; text-transform: uppercase; margin-right: -0.08em; }
+:root .ln-cta .ln-enter::after { width: calc(100% - 2 * var(--ul-x, 0px) - 0.08em); transform: scaleX(0); transform-origin: left center; transition: none; animation: ln-enter-line 4.8s cubic-bezier(0.65, 0, 0.35, 1) 1.2s infinite; }
+@keyframes ln-enter-line {
+  0% { transform: scaleX(0); transform-origin: left center; }
+  30% { transform: scaleX(1); transform-origin: left center; }
+  58% { transform: scaleX(1); transform-origin: left center; }
+  58.01% { transform: scaleX(1); transform-origin: right center; }
+  82% { transform: scaleX(0); transform-origin: right center; }
+  100% { transform: scaleX(0); transform-origin: right center; }
+}
+@media (hover: hover) { :root .ln-cta .ln-enter:hover::after { animation: none; transform: scaleX(1); width: calc(100% - 2 * var(--ul-x, 0px) - 0.08em); } }
+:root .ln-cta .ln-enter:focus-visible::after { animation: none; transform: scaleX(1); }
+html[data-loading] .ln-enter::after { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { :root .ln-cta .ln-enter::after { animation: none; transform: scaleX(1); } }

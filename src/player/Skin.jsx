@@ -3,7 +3,6 @@ import { Container, Hotkey, StatusAnnouncer, useActiveTextCues, useQualityOption
 import { subscribeToInputActions } from '@videojs/core/dom';
 import { usePlayer } from './core.js';
 import { frameAt, useStoryboard } from './storyboard.js';
-import { Wordmark } from '../Wordmark.jsx';
 
 /*
  * ANTICON's skin: a player with no icons. Words and numbers, set like a
@@ -471,16 +470,7 @@ function copyText(text) {
     }
   });
 }
-/** The mark at the top of a sheet, where it sits over the film: the host's own (the feed's goes home), or ANTICON. */
-function SheetMark({ brand }) {
-  return brand || (
-    <span className="ac-brand" aria-hidden="true">
-      <Wordmark center />
-    </span>
-  );
-}
-
-function SharePanel({ share, brand, onClose }) {
+function SharePanel({ share, onClose }) {
   const ref = useRef(null);
   const [copied, setCopied] = useState(null); // 'yes' | 'no'
   // the sheet itself takes the keyboard (Tab goes on to Copy link); nothing is drawn as focused for a mouse or a finger
@@ -512,7 +502,7 @@ function SharePanel({ share, brand, onClose }) {
     <div className="ac-share" role="dialog" aria-modal="true" aria-label="Share" ref={ref} tabIndex={-1}>
       <div className="ac-keys-top">
         <span className="ac-keys-title">Share</span>
-        <SheetMark brand={brand} />
+        <span aria-hidden="true" />
         <button type="button" className="ac-link" onClick={onClose}>
           Close
         </button>
@@ -633,7 +623,7 @@ function Captions({ on, root, layout }) {
   );
 }
 
-function KeysSheet({ feed, fine, brand, onClose }) {
+function KeysSheet({ feed, fine, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
@@ -686,7 +676,7 @@ function KeysSheet({ feed, fine, brand, onClose }) {
     <div className="ac-keys" role="dialog" aria-modal="true" aria-label="Keys and touch" ref={ref} tabIndex={-1}>
       <div className="ac-keys-top">
         <span className="ac-keys-title">{fine ? 'Keys' : 'Touch'}</span>
-        <SheetMark brand={brand} />
+        <span aria-hidden="true" />
         <button type="button" className="ac-link" onClick={onClose}>
           Close
         </button>
@@ -1338,14 +1328,13 @@ export function AnticonSkin({
       {shareOpen && shareInfo && (
         <SharePanel
           share={shareInfo}
-          brand={brand}
           onClose={() => {
             setShareOpen(false);
             root.current?.focus({ preventScroll: true });
           }}
         />
       )}
-      {keysOpen && <KeysSheet feed={!!onNext} fine={fine} brand={brand} onClose={() => { setKeysOpen(false); root.current?.focus({ preventScroll: true }); }} />}
+      {keysOpen && <KeysSheet feed={!!onNext} fine={fine} onClose={() => { setKeysOpen(false); root.current?.focus({ preventScroll: true }); }} />}
 
       <Hotkey keys="Space" action="togglePaused" disabled={overlay || keysOpen || shareOpen} />
       <Hotkey keys="k" action="togglePaused" disabled={overlay || keysOpen || shareOpen} />

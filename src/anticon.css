@@ -402,8 +402,7 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 .ac-ix-top > :last-child, .ac-keys-top > :last-child { justify-self: end; margin-top: -8px; margin-right: -6px; }
 .ac-ix-top .ac-brand, .ac-keys-top .ac-brand { justify-self: center; }
 @container ac (max-width: 380px) { .ac-ix-top .ac-brand, .ac-keys-top .ac-brand { display: none; } }
-.ac-keys .ac-brand, .ac-share .ac-brand { display: inline-block; }
-@container ac (max-width: 380px) { .ac-keys .ac-brand, .ac-share .ac-brand, .ac-ix .ac-brand { display: none; } }
+@container ac (max-width: 380px) { .ac-ix .ac-brand { display: none; } }
 
 /* ---------- one axis along the top ----------
    The title (or a sheet's name) on the left, the mark in the centre and the words on the right all sit on one

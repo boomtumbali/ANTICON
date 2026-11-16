@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anticon-boom.vercel.app/sitemap.xml

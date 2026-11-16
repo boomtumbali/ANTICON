@@ -30,7 +30,7 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 **Share.** The film's link, copied in one click or posted anywhere, with its own preview card.
 
-![The share sheet over a film: the title, the link, Copy link, From 00:14, and X, Facebook, LinkedIn, WhatsApp and Email](docs/share.jpg)
+![The share sheet: Share at the top left, the film's title, its link, and one row of words: Copy link, X, Facebook, LinkedIn, WhatsApp and Email](docs/share.jpg)
 
 **On a phone.** The start page, a film fitted on black, and the Index.
 
@@ -53,16 +53,17 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 
 ## What the player does
 
-- **Words on the edges.** Left edge, reading upward: Play, −10, +10, speed, CC, Loop. Right edge, reading downward: Sound with its volume number, Fill, quality, PiP, Cast, Full. Bottom: the time, the hairline, the length.
-- **Adaptive by its own box.** Container queries, not the window. The words always stand up both edges, at every size: shorter boxes set them closer together and rest the less-used ones (their keys still work), down to Play on the left and Sound and Full on the right in a thumbnail. Nothing overlaps at any size from a 300 px thumbnail to a TV.
-- **One ink, solid.** Every word, number and line is solid white, or solid black where the picture under it is bright: a few times a second the skin reads the frame under each group of words and each group decides for itself. No greys, no shadows, no veils; hierarchy is size alone.
-- **The filmstrip.** While you scrub (drag the picture sideways, slide on a phone, or point at the progress line), a band opens across the middle holding the film's frames from Mux's storyboard. The pointed time sits left of the centre line, the length right of it.
+- **Words on the edges.** Left edge, reading upward: Play, −10, +10, speed, CC, Loop. Right edge, reading downward: Sound with its volume number, Fill, quality, PiP, Cast, Full. Bottom: the time, the hairline, the length. Top: the title on the left, Share and Keys on the right (in the feed, Index too), all on one horizontal axis.
+- **Adaptive by its own box.** Container queries, not the window. The words always stand up both edges, at every size; shorter boxes set them smaller and closer, and rest the less-used ones (their keys still work). A phone held sideways keeps everything but PiP and Cast; under 370 px tall, −10, +10, speed and Loop rest too; a thumbnail keeps Play, Sound and Full. Nothing overlaps at any size from a 300 px thumbnail to a TV.
+- **One ink, solid.** Every word, number and line is solid white, or solid black where the picture under it is bright: a few times a second the skin reads the frame under each group of words and each group decides for itself. No greys, no shadows, no veils; hierarchy is size alone. Where a fitted film leaves a thin black band against a bright picture, the band grows, solid black, until it holds the words.
+- **The filmstrip.** While you scrub (drag the picture sideways, slide on a phone, or point at the progress line), a band opens across the middle holding the film's frames from Mux's storyboard. The pointed time sits left of the centre line, the length right of it. Dragging the picture scrubs exactly as the line does: same scale, and the film follows as you go.
 - **Volume by dragging.** Drag the picture up or down (on a phone: hold, then slide). The middle shows `SOUND 64`.
 - **Quality.** `AUTO`, or the size you chose (`1080P`, `720P` …); each click, or Q, steps through Auto and every size the stream offers, highest first.
-- **Share.** A Share word in the corner opens the link with one row of words: *Copy link*, X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
+- **Sheets.** Index (in the feed), Share and Keys open over the player in solid black, each with its name where the film's title sits and Close where the corner words sit; Esc closes them.
+- **Share.** The Share word opens the link with one row of words: *Copy link*, X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
 - **Captions.** CC shows the stream's own captions (Mux's), set by the skin rather than the browser, so they look the same everywhere: Inter Tight at a reading weight, warm white on a dark box that hugs each line. They sit just above the time and the line, and settle lower when the words fade. iOS full screen and picture in picture keep the system's own captions.
 - **Answers in the middle.** Keys and taps answer in thin capitals, at a size you read and forget: `PLAY`, `+10`, `1.5×`, `SOUND 40`.
-- **Sound by default.** Browsers allow sound after the first click, tap or key, so *Enter* and choosing a film start with sound. Arriving by scrolling or from a link, the film starts silent and says so; the first tap, click or key turns sound on and does nothing else.
+- **Sound by default.** Browsers allow sound after the first click, tap or key, so *Enter* and choosing a film start with sound. Arriving by scrolling or from a link, the film starts silent and says so; the first tap, click or key turns sound on and does nothing else. The volume you set carries from film to film.
 - **Calm moves between films.** One film per wheel turn or swipe, whatever the trackpad does after. The leaving film freezes on its frame (no black flash) and the next fades up only once it has a real frame to show. The time and the line stay put through the move; they rest only when you do.
 
 ## Keyboard, mouse and touch
@@ -87,7 +88,7 @@ Every page has the same header (Feed, Test, Embed, Source, less the page you are
 | Mouse | Action |
 | --- | --- |
 | Click the picture | Play or pause |
-| Drag sideways | Scrub, with the film's frames |
+| Drag sideways | Scrub, with the film's frames (as the line does) |
 | Drag up or down | Volume |
 | Wheel (feed) | Next or previous film |
 
@@ -134,7 +135,7 @@ The skin itself is `AnticonSkin` in `src/player/Skin.jsx`; the feed in `src/App.
 
 ## Built with
 
-- **Video.js 10:** `createPlayer` with `videoFeatures` (one store for play state, time, volume, rate, captions, quality, PiP, Cast, full screen), `Hotkey`, `StatusAnnouncer`, `useQualityOptions`, input-action events, `MuxVideo` and `HlsJsVideo`.
+- **Video.js 10:** `createPlayer` with `videoFeatures` (one store for play state, time, volume, rate, captions, quality, PiP, Cast, full screen), `Hotkey`, `StatusAnnouncer`, `useQualityOptions`, `useActiveTextCues` (the captions), input-action events, `MuxVideo` and `HlsJsVideo`.
 - **Mux:** streaming, thumbnails, storyboards for the filmstrip, and Mux Data.
 - **React 19** and **Vite**. Type: Inter Tight and Geist Mono, bundled.
 
