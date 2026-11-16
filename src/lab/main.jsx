@@ -9,6 +9,7 @@ import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { SiteHeader } from '../SiteHeader.jsx';
+import { SiteCredits } from '../credits.jsx';
 
 /*
  * The test page. One ANTICON player, put through the screens it will meet
@@ -162,6 +163,8 @@ function Lab() {
         <Choice label="Screen" value={screen} onChange={setScreen} items={screens} row={narrow} />
         <Choice label="Picture" value={pic} onChange={setPic} items={pictures} row={narrow} />
       </aside>
+
+      <SiteCredits />
     </div>
   );
 }

@@ -8,7 +8,7 @@ import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
-import { BlenderLink, MuxLink, VideoJsLink } from '../credits.jsx';
+import { SiteCredits, VideoJsLink } from '../credits.jsx';
 import { SiteHeader } from '../SiteHeader.jsx';
 
 /*
@@ -108,27 +108,8 @@ function Page() {
         </div>
         <p>Give it a width and an aspect ratio. A Mux playback ID, or any MP4 or HLS link as <code>src</code>.</p>
       </section>
-      <footer className="ep-foot">
-        <span className="ep-credit">
-          <span>Built on</span>
-          <VideoJsLink height={11} />
-        </span>
-        <span className="ep-credit">
-          <span>Streams</span>
-          <MuxLink height={10} />
-        </span>
-        <span className="ep-credit">
-          <span>Films</span>
-          <BlenderLink />
-        </span>
-        <span className="ep-credit">
-          <span>Vibecoder</span>
-          <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-            @boomtumbali
-          </a>
-        </span>
-      </footer>
     </main>
+      <SiteCredits />
     </>
   );
 }

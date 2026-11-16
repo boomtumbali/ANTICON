@@ -32,3 +32,29 @@ export function BlenderLink({ children = 'Blender Studio' }) {
     </a>
   );
 }
+
+/** The credits at the foot of a page, in one order: Video.js, Mux, Blender Studio, the vibecoder. */
+export function SiteCredits() {
+  return (
+    <footer className="site-foot">
+      <span className="site-credit">
+        <span>Built on</span>
+        <VideoJsLink height={11} />
+      </span>
+      <span className="site-credit">
+        <span>Streams</span>
+        <MuxLink height={10} />
+      </span>
+      <span className="site-credit">
+        <span>Films</span>
+        <BlenderLink />
+      </span>
+      <span className="site-credit">
+        <span>Vibecoder</span>
+        <a className="site-name" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
+          @boomtumbali
+        </a>
+      </span>
+    </footer>
+  );
+}

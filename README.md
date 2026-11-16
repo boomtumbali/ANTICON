@@ -32,6 +32,10 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 ![The share sheet: Share at the top left, the film's title, its link, and one row of words: Copy link, X, Facebook, LinkedIn, WhatsApp and Email](docs/share.jpg)
 
+**Share cards.** Every film has its own card, made to survive every crop: whatever a platform keeps (wide, 2:1, square), the title, the poster and the name stay; the player's edge words fill the wide sides.
+
+![A film's share card three ways: wide as on Facebook or LinkedIn, 2:1 as on X, and the centre square as in a Messenger or WhatsApp thumbnail; each keeps ANTICON, the poster, Sprite Fright and by @boomtumbali](docs/cards.jpg)
+
 **On a phone.** The start page, a film fitted on black, and the Index.
 
 ![Three phone screens: the start page, a film in the feed, and the Index](docs/phone.jpg)
@@ -49,7 +53,7 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 | `/player/` | Test: one player at every screen size (phone, tablet, laptop, desktop, TV, embed) over the hardest pictures (white, paper, black, bars, half and half) and all ten films. On a phone, the player comes first and the choices slide sideways under it. |
 | `/embed/` | Embed: the standalone player on an ordinary page, at 16:9, 9:16, 21:9, 4:3 and thumbnail size, with the code to use it. |
 
-Every page has the same header (Feed, Test, Embed, Source, less the page you are on) and a **Light** word (struck through while the page is dark, the default). The choice is shared by all pages; the player itself stays dark.
+Every page has the same header (Feed, Test, Embed, Source, less the page you are on) and a **Light** word, struck through while the page is dark. The Feed opens dark; Test and Embed open light, so the player's edges show against the page. Once you choose, the choice holds on every page. The player itself stays dark. Embed and Test end with the same credits: Video.js, Mux, Blender Studio, the vibecoder.
 
 ## What the player does
 

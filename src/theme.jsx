@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react';
 
 /*
  * Light or dark page. One choice, kept in this browser and shared by every
- * page (Feed, Test, Embed). The pages set
- * it before they paint (a line in each page's <head>), so there is no flash.
+ * page (Feed, Test, Embed) once made. Until then each page has its own: the
+ * Feed opens dark (a cinema), Test and Embed open light (the player's edges
+ * show against the page). The pages set it before they paint (a line in each
+ * page's <head>, which also records the page's own default), so no flash.
  * The player itself stays dark: it is a picture frame.
  */
 const KEY = 'anticon-theme';
+const pageDefault = () => (document.documentElement.dataset.themeDefault === 'light' ? 'light' : 'dark');
 export const getTheme = () => {
   try {
-    return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark';
+    const v = localStorage.getItem(KEY);
+    return v === 'light' || v === 'dark' ? v : pageDefault();
   } catch {
-    return 'dark';
+    return pageDefault();
   }
 };
 export function setTheme(t) {

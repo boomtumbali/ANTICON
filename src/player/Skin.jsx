@@ -1174,12 +1174,25 @@ export function AnticonSkin({
         live.current.toggle();
       }, 320);
     };
+    // A long press is ours (twice the speed, then a slide for sound or scrubbing), never the browser's: its
+    // long-press menu (on a video: save, open, copy) would take the finger and cancel the gesture mid-hold.
+    let touchAt = -1e9;
+    const noteTouch = (e) => {
+      if (e.pointerType === 'touch') touchAt = performance.now();
+    };
+    const noMenu = (e) => {
+      if (pts.size > 0 || performance.now() - touchAt < 1500) e.preventDefault();
+    };
+    el.addEventListener('pointerdown', noteTouch, true);
+    el.addEventListener('contextmenu', noMenu, true);
     el.addEventListener('pointerdown', down);
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
     el.addEventListener('touchmove', tmove, { passive: false });
     return () => {
+      el.removeEventListener('pointerdown', noteTouch, true);
+      el.removeEventListener('contextmenu', noMenu, true);
       el.removeEventListener('pointerdown', down);
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);

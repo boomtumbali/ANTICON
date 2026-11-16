@@ -2,7 +2,7 @@
 <html lang="en" data-loading>
   <head>
     <meta charset="UTF-8" />
-    <script>try{document.documentElement.dataset.theme=localStorage.getItem('anticon-theme')==='light'?'light':'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
+    <script>(function(){var r=document.documentElement,d='dark',s=null;r.dataset.themeDefault=d;try{s=localStorage.getItem('anticon-theme')}catch(e){}r.dataset.theme=s==='light'||s==='dark'?s:d})()</script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="ANTICON: a Video.js player with no icons, only words and numbers. Ten Blender open movies, one to a screen, for as long as you keep scrolling." />

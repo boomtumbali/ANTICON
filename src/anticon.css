@@ -417,3 +417,9 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 .ac-ix-top, .ac-keys-top { grid-template-rows: var(--tline); align-items: center; }
 .ac-ix-top > :last-child, .ac-keys-top > :last-child { margin-top: 0; }
 .ac-ix-top, .ac-keys-top { min-height: var(--tline); }
+/* a long press is the player's: no press-and-hold callout over the picture or the words (iOS), no selection */
+.ac, .ac video, .ac img, .ac canvas { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+/* the sheets scroll under a finger, in the feed too (the feed's own swipe is off inside them), and keep their scroll
+   to themselves */
+.ac.ac--feed :is(.ac-keys, .ac-share, .ac-ix), .ac.ac--feed :is(.ac-keys, .ac-share, .ac-ix) * { touch-action: pan-y; }
+.ac :is(.ac-keys, .ac-share, .ac-ix) { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }

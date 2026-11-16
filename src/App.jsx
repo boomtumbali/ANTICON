@@ -5,7 +5,7 @@ import { HlsJsVideo } from '@videojs/react/media/hlsjs-video';
 import { MuxData } from '@videojs/react/extensions/mux-data';
 import { Player } from './player/core.js';
 import { AnticonSkin } from './player/Skin.jsx';
-import { FILMS, LOCAL, localSrc, pad2, storyboardOf } from './films.js';
+import { FILMS, LOCAL, localSrc, storyboardOf } from './films.js';
 import { IndexPage, Credits } from './IndexPage.jsx';
 import { Landing } from './Landing.jsx';
 import { Wordmark } from './Wordmark.jsx';
@@ -533,7 +533,6 @@ function Slide({ p, film, front, playing, shown, els, soundPref, from, loop, onE
     <section ref={rootEl} className="ac-slide" data-front={front || undefined} aria-label={`${film.title}, ${film.year}`}>
       <div ref={inner} className="ac-slide-in">
         <div className="ac-cover" data-gone={visible || undefined} aria-hidden="true">
-          <span className="ac-cover-n ac-mono">{pad2(film.n)}</span>
           <span className="ac-cover-t">{film.title}</span>
           {film.subtitle && <span className="ac-cover-s ac-mono">{film.subtitle}</span>}
         </div>

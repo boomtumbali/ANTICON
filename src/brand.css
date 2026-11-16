@@ -51,13 +51,13 @@
  * box: labels in a row keep one baseline. (--ul-x and --ul-b are the label's
  * own padding, so the line runs under the letters, not under the padding.)
  */
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy) {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy) {
   position: relative;
   text-decoration: none !important;
   border-bottom: 0 !important;
   background-image: none !important;
 }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after {
   content: '';
   position: absolute;
   left: var(--ul-x, 0px);
@@ -69,17 +69,17 @@
   transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (hover: hover) {
-  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy):hover::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy):hover::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
 }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy):focus-visible::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy):active::after { width: 0; transition-duration: 0.18s; }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy):focus-visible::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy):active::after { width: 0; transition-duration: 0.18s; }
 /* each label's own padding */
 :root .ac-link { --ul-x: 6px; --ul-b: 8px; }
 :root .ln-nav a { --ul-b: 8px; }
 :root .ln-enter { --ul-x: 6px; --ul-b: 4px; }
 :root .ac-share-copy { --ul-b: 10px; }
 @media (prefers-reduced-motion: reduce) {
-  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after { transition: none; }
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after { transition: none; }
 }
 
 /* a credit's link (Video.js, Mux, Blender Studio): its mark or name in the surrounding ink */
@@ -91,7 +91,7 @@
  * Every line drawn on a word (the underline under the hand, the line through an off word, the test page's dash)
  * is a 1 px border, never a filled 1 px box: a border snaps to whole pixels, so every line has the same weight
  * wherever it lands, instead of blurring across two rows of pixels at some positions and not at others. */
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-nav a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, .site-name, button.ac-title, .mk-link, .site-nav a, .ep-copy)::after {
   height: 0; background: none; border-top: 1px solid currentColor;
 }
 :root .ac-word > span::after { block-size: 0; background: none; border-block-start: 1px solid currentColor; }
@@ -113,3 +113,14 @@
 /* the header sits on a hairline that runs the full width of the page, on every page */
 .site-top { padding-bottom: clamp(10px, 1.8vmin, 18px); border-bottom: 1px solid currentColor; }
 :root .ep-copy { --ul-x: 4px; --ul-b: 8px; }
+
+/* ---------- the site's credits: one footer for Embed and Test ----------
+   A hairline the full width of the page, then the four credits as one group in the middle. On a portrait screen,
+   a list, flush left, one credit to a line. */
+.site-foot { box-sizing: border-box; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px clamp(28px, 3vw, 44px); padding: clamp(16px, 2.4vmin, 24px) var(--site-gut, clamp(16px, 3vw, 40px)) max(clamp(16px, 2.4vmin, 24px), env(safe-area-inset-bottom)); border-top: 1px solid currentColor; --site-gut: clamp(16px, 3vw, 40px); }
+.site-credit { display: inline-flex; align-items: center; gap: 10px; font: 400 10.5px/1.3 'Geist Mono Variable', ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; }
+.site-credit a { color: inherit; }
+.site-credit a:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+@media (max-width: 640px), (orientation: portrait) and (max-width: 1100px) {
+  .site-foot { flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 12px; }
+}
