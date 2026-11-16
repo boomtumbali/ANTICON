@@ -167,4 +167,4 @@ All by Blender Studio, released under Creative Commons, streamed through Mux. Ne
 
 ## Credits
 
-Built on Video.js 10. Streams hosted on Mux. Films by Blender Studio, Creative Commons. Vibecoded by [@boomtumbali](https://contra.com/boomtumbali). The Video.js logo belongs to the Video.js project.
+Built on Video.js 10. Streams hosted on Mux. Films by Blender Studio, Creative Commons. Vibecoded by [@boomtumbali](https://contra.com/boomtumbali).
