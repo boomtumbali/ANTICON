@@ -157,6 +157,14 @@ npm run build      # dist/
 
 Deploy on Vercel as a Vite project; `vercel.json` maps `/player` and `/embed` to their pages.
 
+## Analytics
+
+- **Mux Data** (in the feed): playback quality and engagement, meaning startup time, rebuffering, and which films are watched and for how long.
+- **Vercel Web Analytics** (all three pages): visitors, page views, referrers and countries. Each page load counts once, under its path. Moving between films only changes the URL hash, so it is not counted as a new page.
+- **Vercel Speed Insights** (all three pages): real-user loading scores (Core Web Vitals).
+
+Both Vercel tools load only on the deployed build, never in `npm run dev`. They live in `src/vercel.js`. To start collecting, open the project in Vercel and turn on **Analytics** and **Speed Insights**; until then their scripts are served but record nothing.
+
 ## The films
 
 All by Blender Studio, released under Creative Commons, streamed through Mux.
