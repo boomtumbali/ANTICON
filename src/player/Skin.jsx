@@ -69,6 +69,9 @@ function zonesOf(host) {
   }
   return out;
 }
+// which third of the picture a tap or click lands in
+const SIDE3 = (x, r) => (x - r.left < r.width / 3 ? 'left' : x - r.left > (r.width * 2) / 3 ? 'right' : 'center');
+
 function useTone(root, fill) {
   const [tone, setTone] = useState({});
   useEffect(() => {
@@ -648,24 +651,27 @@ function KeysSheet({ feed, fine, onClose }) {
     ['Q', 'Quality: Auto, then each size the stream offers'],
     ['C', 'Captions'],
     ['<  >', 'Slower, faster'],
-    ['F   double-click', 'Full screen'],
+    ['F', 'Full screen'],
+    ['Double-click the middle', 'Full screen'],
+    ['Double-click a side', '10 seconds back or forward'],
     ['I', 'Picture in picture'],
     ['?   Esc', 'This list, close'],
     ['Drag sideways', 'Scrub, with the film\'s frames'],
-    ['Drag up or down', 'Volume'],
+    ['Drag up or down, left half', 'Volume'],
+    feed ? ['Drag up or down, right half', 'Next or previous film'] : null,
     feed ? ['Wheel   Index', 'Next or previous film'] : null,
   ].filter(Boolean);
   const touch = [
     ['Tap', 'Play or pause'],
     ['Double-tap a side', '10 seconds back or forward'],
     ['Keep tapping', '10 more each time'],
-    ['Double-tap the middle', 'Fill or fit'],
+    ['Double-tap the middle', 'Full screen'],
     ['Hold', 'Twice the speed, while you hold'],
     ['Slide sideways', 'Scrub, with the film\'s frames'],
-    ['Hold, then slide up or down', 'Volume'],
+    ['Hold on the left, then slide up or down', 'Volume'],
     ['Hold, then slide sideways', 'Scrub'],
     ['Pinch', 'Out to fill, in to fit'],
-    feed ? ['Swipe up or down', 'Next or previous film'] : null,
+    feed ? ['Swipe up or down', 'Next or previous film (from the right, even after a hold)'] : null,
   ].filter(Boolean);
   const List = ({ title, rows }) => (
     <section>
@@ -799,7 +805,8 @@ export function AnticonSkin({
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
       if (onWord(e)) return;
       if (live.current.overlay) return;
-      m = { id: e.pointerId, x: e.clientX, y: e.clientY, r: el.getBoundingClientRect(), mode: null };
+      const r = el.getBoundingClientRect();
+      m = { id: e.pointerId, x: e.clientX, y: e.clientY, r, mode: null, left: e.clientX - r.left < r.width / 2 };
     };
     const move = (e) => {
       if (!m || e.pointerId !== m.id) return;
@@ -807,7 +814,12 @@ export function AnticonSkin({
       const dy = e.clientY - m.y;
       if (!m.mode) {
         if (Math.hypot(dx, dy) < 8) return;
-        m.mode = Math.abs(dx) >= Math.abs(dy) ? 'scrub' : 'vol';
+        // sideways scrubs anywhere; up or down is the sound on the left half, and scrolls on the right
+        // (the feed moves to the next film; a page moves the page)
+        m.mode = Math.abs(dx) >= Math.abs(dy) ? 'scrub' : m.left ? 'vol' : 'scroll';
+        m.lastY = e.clientY;
+        if (m.mode !== 'scroll') el.dataset.gesture = 'drag';
+        else if (live.current.onNext) return; // the feed takes it from here
         try {
           el.setPointerCapture(e.pointerId);
         } catch {
@@ -818,20 +830,57 @@ export function AnticonSkin({
           m.from = store.state.currentTime;
         } else m.from = store.state.muted ? 0 : store.state.volume;
       }
+      if (m.mode === 'scroll') {
+        if (!live.current.onNext) scrollBy(0, -(e.clientY - m.lastY));
+        m.lastY = e.clientY;
+        return;
+      }
       live.current.drag(m, dx, dy);
     };
+    // a click plays or pauses; two quick clicks are a double-click: the middle is full screen, a side ten seconds
+    // (so the single click waits that long before it plays or pauses, and a double-click never stops the film)
+    let lastClick = null;
+    let pending = 0;
+    let streak = null;
     const up = (e) => {
       if (!m || e.pointerId !== m.id) return;
       const M = m;
       m = null;
       if (M.mode) {
-        live.current.dragEnd(M, e.type === 'pointercancel');
+        delete el.dataset.gesture;
+        if (M.mode !== 'scroll') live.current.dragEnd(M, e.type === 'pointercancel');
         return;
       }
       if (e.type === 'pointercancel') return;
       // a plain click on the picture
-      if (live.current.soundGate && live.current.onSoundGate) live.current.onSoundGate();
-      else live.current.toggle();
+      if (live.current.soundGate && live.current.onSoundGate) {
+        clearTimeout(pending);
+        lastClick = null;
+        live.current.onSoundGate();
+        return;
+      }
+      const now = performance.now();
+      const side = SIDE3(e.clientX, M.r);
+      if (streak && streak.side === side && now < streak.until && side !== 'center') {
+        streak.total += 10;
+        streak.until = now + 700;
+        live.current.sideSeek(side, streak.total);
+        return;
+      }
+      if (lastClick && lastClick.side === side && now - lastClick.t < 300) {
+        clearTimeout(pending);
+        lastClick = null;
+        if (side === 'center') return live.current.toggleFull();
+        streak = { side, total: 10, until: now + 700 };
+        live.current.sideSeek(side, 10);
+        return;
+      }
+      lastClick = { t: now, side };
+      clearTimeout(pending);
+      pending = setTimeout(() => {
+        lastClick = null;
+        live.current.toggle();
+      }, 260);
     };
     // a click on a word leaves the keyboard with the player, so Space still plays and pauses
     const refocus = (e) => {
@@ -849,6 +898,7 @@ export function AnticonSkin({
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
       el.removeEventListener('pointerup', refocus);
+      clearTimeout(pending);
     };
   }, [store]);
 
@@ -909,6 +959,15 @@ export function AnticonSkin({
       ? null
       : share ?? (typeof location !== 'undefined' ? { url: location.origin + location.pathname, title: title ?? 'ANTICON', text: title ? `${title}, on ANTICON` : 'ANTICON' } : null);
   const live = useRef({});
+  // ten seconds from a side: −10 on the left, +10 on the right (and more for each tap that follows)
+  const sideSeek = useCallback(
+    (side, total) => {
+      const st = store.state;
+      store.seek(Math.min(st.duration || 0, Math.max(0, st.currentTime + (side === 'left' ? -10 : 10))));
+      show(`${side === 'left' ? '−' : '+'}${total}`, side);
+    },
+    [store, show],
+  );
   const toggle = useCallback(() => {
     const p = store.state.paused || store.state.ended;
     (p ? store.play() : store.pause())?.catch?.(() => {});
@@ -950,7 +1009,7 @@ export function AnticonSkin({
     },
     [store, show, release],
   );
-  live.current = { toggleFull, onNext, onPrev, overlay: overlay || shareOpen, shareOpen, keysOpen, fill, show, soundGate, onSoundGate, q, toggle, drag, dragEnd };
+  live.current = { toggleFull, onNext, onPrev, overlay: overlay || shareOpen, shareOpen, keysOpen, fill, show, soundGate, onSoundGate, q, toggle, drag, dragEnd, sideSeek };
   useEffect(() => {
     const el = root.current;
     const vol = (dv) => {
@@ -1035,7 +1094,7 @@ export function AnticonSkin({
     let lastTap = null; // { t, side }
     let streak = null; // { side, total, until }
     let pending = 0;
-    const SIDE = (x, r) => (x - r.left < r.width / 3 ? 'left' : x - r.left > (r.width * 2) / 3 ? 'right' : 'center');
+    const SIDE = SIDE3;
     const onPicture = (e) => !e.target.closest?.('.ac-edges button, .ac-edges a, .ac-edges [role=slider], .ac-ix, .ac-keys, .ac-cr, .ac-share');
     const endHold = (G) => {
       if (G?.holding) {
@@ -1058,18 +1117,20 @@ export function AnticonSkin({
       }
       if (pts.size > 2) return;
       const r = el.getBoundingClientRect();
-      g = { x: e.clientX, y: e.clientY, t: performance.now(), r, moved: false, mode: null, held: false, holding: null, second: false };
+      // the half a finger lands on decides what a held slide up or down means: the left is the sound, the right scrolls
+      g = { x: e.clientX, y: e.clientY, t: performance.now(), r, moved: false, mode: null, held: false, holding: null, second: false, left: e.clientX - r.left < r.width / 2 };
       // a second finger-down on the same side, soon after a tap, is a double-tap: hold back the play/pause now,
       // not when the finger lifts, so a slow second tap never pauses the film on its way to +10
       if (lastTap && lastTap.side === SIDE(e.clientX, r) && g.t - lastTap.t < 320) {
         clearTimeout(pending);
         g.second = true;
       }
-      // hold: twice the speed while the finger stays; and from here a slide is scrub (sideways) or volume (up or down)
+      // hold: twice the speed while the finger stays; and from here a slide is scrub (sideways), or on the left
+      // half the sound (up or down)
       g.hold = setTimeout(() => {
         if (!g || g.moved) return;
         g.held = true;
-        el.dataset.gesture = 'held'; // the feed leaves a held finger alone
+        if (g.left) el.dataset.gesture = 'held'; // the feed leaves a finger held on the left alone
         g.holding = { rate: store.state.playbackRate };
         store.setPlaybackRate(2);
         if (store.state.paused) store.play()?.catch?.(() => {});
@@ -1097,11 +1158,12 @@ export function AnticonSkin({
         clearTimeout(g.hold);
         const sideways = Math.abs(dx) > Math.abs(dy) * 1.3;
         if (g.held) {
-          // held, then slid: the 2× stops, and the slide takes over
+          // held, then slid: the 2× stops, and the slide takes over: sideways scrubs; up or down is the sound on the
+          // left half, and on the right half belongs to the page, or to the feed (the next film)
           endHold(g);
-          el.dataset.gesture = 'held';
-          g.mode = sideways ? 'scrub' : 'vol';
+          g.mode = sideways ? 'scrub' : g.left ? 'vol' : null;
         } else if (sideways) g.mode = 'scrub';
+        if (g.mode) el.dataset.gesture = 'held';
         // a quick slide up or down (not held) belongs to the page, or to the feed
         if (g.mode === 'scrub') {
           if (store.state.duration > 0) g.from = store.state.currentTime;
@@ -1117,7 +1179,7 @@ export function AnticonSkin({
     };
     // a held finger keeps the page still (a standalone player lets quick slides scroll its page)
     const tmove = (e) => {
-      if (g && (g.held || g.mode) && e.cancelable) e.preventDefault();
+      if (g && (g.mode || (g.held && g.left && !g.moved)) && e.cancelable) e.preventDefault();
     };
     const up = (e) => {
       if (e.pointerType !== 'touch' || !pts.has(e.pointerId)) return;
@@ -1159,21 +1221,19 @@ export function AnticonSkin({
       if (streak && streak.side === side && now < streak.until && side !== 'center') {
         streak.total += 10;
         streak.until = now + 700;
-        store.seek(Math.min(store.state.duration || 0, Math.max(0, store.state.currentTime + (side === 'left' ? -10 : 10))));
-        live.current.show(`${side === 'left' ? '−' : '+'}${streak.total}`, side);
+        live.current.sideSeek(side, streak.total);
         return;
       }
       if (G.second || (lastTap && lastTap.side === side && now - lastTap.t < 320)) {
         clearTimeout(pending);
         lastTap = null;
+        // the middle: full screen; a side: ten seconds
         if (side === 'center') {
-          setFillPref(!live.current.fill);
-          live.current.show(live.current.fill ? 'Fit' : 'Fill');
+          live.current.toggleFull();
           return;
         }
         streak = { side, total: 10, until: now + 700 };
-        store.seek(Math.min(store.state.duration || 0, Math.max(0, store.state.currentTime + (side === 'left' ? -10 : 10))));
-        live.current.show(side === 'left' ? '−10' : '+10', side);
+        live.current.sideSeek(side, 10);
         return;
       }
       lastTap = { t: now, side };
@@ -1211,16 +1271,6 @@ export function AnticonSkin({
     };
   }, [store, show]);
 
-  // mouse: a double-click on the picture is full screen (the single clicks play and pause, as everywhere)
-  useEffect(() => {
-    const el = root.current;
-    const dbl = (e) => {
-      if (live.current.overlay || e.target.closest?.('.ac-edges button, .ac-edges [role=slider], .ac-ix, .ac-keys')) return;
-      live.current.toggleFull();
-    };
-    el.addEventListener('dblclick', dbl);
-    return () => el.removeEventListener('dblclick', dbl);
-  }, []);
 
   const seekBy = (s) => store.seek(Math.min(d || 0, Math.max(0, (t || 0) + s)));
   const playWord = waiting && !paused ? 'Loading' : ended ? 'Replay' : paused ? 'Play' : 'Pause';

@@ -17,6 +17,9 @@ import { SiteCredits } from '../credits.jsx';
  * itself) and the pictures that are hardest to read over (white, paper,
  * black, bars, half and half), and the ten films.
  *
+ * It opens on Singularity, playing with sound, on the visitor's own kind of
+ * screen: the desktop, or on a phone the phone, upright or sideways as it is held.
+ *
  * Wide screens choose from two lists beside the stage. Phones and portrait
  * screens put the player first, full width, and choose from two rows of words
  * that slide sideways under the thumb.
@@ -41,20 +44,12 @@ const CARDS = [
 ];
 const NARROW = '(max-width: 899px), (orientation: portrait) and (max-width: 1100px)';
 
-const read = (key, fallback) => {
-  try {
-    return localStorage.getItem(`anticon-lab-${key}`) ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-const keep = (key, v) => {
-  try {
-    localStorage.setItem(`anticon-lab-${key}`, v);
-  } catch {
-    /* private window: fine */
-  }
-};
+// The first screen is the visitor's own: a phone gets the phone, held the way it is held, and anything else the desktop.
+const PHONE = '(pointer: coarse) and (max-device-width: 600px), (pointer: coarse) and (max-device-height: 600px)';
+const isPhone = () => matchMedia(PHONE).matches || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600);
+const LANDSCAPE = '(orientation: landscape)';
+const ownScreen = () => (isPhone() ? (matchMedia(LANDSCAPE).matches ? 'phone-side' : 'phone') : 'desktop');
+
 function useMatch(q) {
   const [m, setM] = useState(() => matchMedia(q).matches);
   useEffect(() => {
@@ -112,10 +107,14 @@ function useScrollMarks() {
 function Lab() {
   useScrollMarks();
   const narrow = useMatch(NARROW);
-  const [screen, setScreen] = useState(() => read('screen', matchMedia(NARROW).matches ? 'free' : 'phone-side'));
-  const [pic, setPic] = useState(() => read('pic', 'sprite-fright'));
-  useEffect(() => keep('screen', screen), [screen]);
-  useEffect(() => keep('pic', pic), [pic]);
+  const [screen, setScreen] = useState(ownScreen);
+  const [pic, setPic] = useState('singularity');
+  // turn the phone and the phone screen turns with it, at once (unless another screen was chosen)
+  const landscape = useMatch(LANDSCAPE);
+  useEffect(() => {
+    if (!isPhone()) return;
+    setScreen((s) => (s === 'phone' || s === 'phone-side' ? (landscape ? 'phone-side' : 'phone') : s));
+  }, [landscape]);
 
   // the stage measures itself; a screen bigger than the stage is shown scaled down, at its true size inside.
   // On a narrow screen the stage is the page's width, and as tall as the screen allows with the choices in reach.

@@ -15,6 +15,8 @@ import { SiteHeader } from '../SiteHeader.jsx';
  * The player on its own, in an ordinary page, at the sizes a site would
  * really give it: a full column, a narrow sidebar, an upright phone-shaped
  * box, a cinema-wide strip and a thumbnail. One film each, no feed.
+ * Every film waits at its middle, so each box already holds a picture; the
+ * first plays, with sound, and starting another stops the one before.
  */
 const pick = (id) => FILMS.find((f) => f.id === id);
 const props = (f) => ({
@@ -71,27 +73,27 @@ function Page() {
       </section>
 
       <figure className="ep-fig">
-        <AnticonPlayer {...props(pick('sprite-fright'))} aspect="16 / 9" />
+        <AnticonPlayer {...props(pick('sprite-fright'))} aspect="16 / 9" start="middle" autoPlay />
         <figcaption>16 : 9, a full column</figcaption>
       </figure>
 
       <div className="ep-row">
         <figure className="ep-fig ep-portrait">
-          <AnticonPlayer {...props(pick('agent-327'))} aspect="9 / 16" />
+          <AnticonPlayer {...props(pick('agent-327'))} aspect="9 / 16" start="middle" />
           <figcaption>9 : 16, phone-shaped</figcaption>
         </figure>
         <div className="ep-col">
           <figure className="ep-fig">
-            <AnticonPlayer {...props(pick('charge'))} aspect="21 / 9" />
+            <AnticonPlayer {...props(pick('charge'))} aspect="21 / 9" start="middle" />
             <figcaption>21 : 9, a cinema strip</figcaption>
           </figure>
           <div className="ep-pair">
             <figure className="ep-fig">
-              <AnticonPlayer {...props(pick('singularity'))} aspect="4 / 3" />
+              <AnticonPlayer {...props(pick('singularity'))} aspect="4 / 3" start="middle" />
               <figcaption>4 : 3, a sidebar</figcaption>
             </figure>
             <figure className="ep-fig ep-thumb">
-              <AnticonPlayer {...props(pick('spring'))} aspect="16 / 9" />
+              <AnticonPlayer {...props(pick('spring'))} aspect="16 / 9" start="middle" />
               <figcaption>a thumbnail</figcaption>
             </figure>
           </div>
