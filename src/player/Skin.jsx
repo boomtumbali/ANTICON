@@ -90,7 +90,15 @@ function useTone(root, fill) {
       cv.width = W;
       cv.height = H;
       // the same fit as on screen; the bands around a fitted film are black
-      const s = (fill ? Math.max : Math.min)(W / v.videoWidth, H / v.videoHeight);
+      // Snug: a film a hair off the box's shape would leave black bands too thin to hold a word, so the words
+      // (one ink, no shadow) would straddle band and picture. Under 3.5% a side, the film fills instead: a sliver
+      // is cropped and no band is left. (Wider bands stay, and grow into mattes where they must.)
+      const fit = Math.min(W / v.videoWidth, H / v.videoHeight);
+      const band = Math.max(1 - (v.videoWidth * fit) / W, 1 - (v.videoHeight * fit) / H) / 2;
+      const wasSnug = host.hasAttribute('data-snug');
+      const snug = !fill && band > 0.001 && band < (wasSnug ? 0.045 : 0.035);
+      if (snug !== wasSnug) host.toggleAttribute('data-snug', snug);
+      const s = (fill || snug ? Math.max : Math.min)(W / v.videoWidth, H / v.videoHeight);
       const dw = v.videoWidth * s;
       const dh = v.videoHeight * s;
       const py0 = Math.max(0, (H - dh) / 2 / H); // where the picture starts and ends, as fractions of the box
@@ -868,7 +876,8 @@ export function AnticonSkin({
       const later = (fn) => setTimeout(() => show(fn(store.state)), 60);
       switch (ev.action) {
         case 'togglePaused':
-          show(store.state.paused ? 'Pause' : 'Play');
+          // the action arrives before the store changes: answer with what it became
+          later((s) => (s.paused ? 'Pause' : 'Play'));
           break;
         case 'seekStep': {
           const v = ev.value ?? 10;

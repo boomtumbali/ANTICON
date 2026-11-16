@@ -423,3 +423,6 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
    to themselves */
 .ac.ac--feed :is(.ac-keys, .ac-share, .ac-ix), .ac.ac--feed :is(.ac-keys, .ac-share, .ac-ix) * { touch-action: pan-y; }
 .ac :is(.ac-keys, .ac-share, .ac-ix) { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* snug: a film a hair off the box's shape fills it (see useTone), so no band too thin to hold a word is left */
+.ac[data-snug] :is(.ac-still, .ac-media, .ac-freeze, .ac-film) { object-fit: cover; }
+.ac[data-snug] .ac-mats { display: none; }
