@@ -32,13 +32,13 @@ Built on **Video.js 10** (`@videojs/react`) for the Video.js v10 Skins Challenge
 
 ![The share sheet over a film: the title, the link, Copy link, From 00:14, and X, Facebook, LinkedIn, WhatsApp and Email](docs/share.jpg)
 
-**On a phone.** The start page, a film fitted with its own colours blurred around it, and the Index.
+**On a phone.** The start page, a film fitted on black, and the Index.
 
 ![Three phone screens: the start page, a film in the feed, and the Index](docs/phone.jpg)
 
 **The player lab.** Every screen size, and the pictures hardest to read over.
 
-![The player lab at laptop size on a white test card, with the readout of which ink each edge chose](docs/lab.jpg)
+![The player lab at laptop size on a white test card, with the readout of which colour each edge's words took](docs/lab.jpg)
 
 ## Pages
 
@@ -54,17 +54,16 @@ Every page has a **Light** word in its header (struck through while the page is 
 ## What the player does
 
 - **Words on the edges.** Left edge, reading upward: Play, −10, +10, speed, CC, Loop. Right edge, reading downward: Sound with its volume number, Fill, quality, PiP, Cast, Full. Bottom: the time, the hairline, the length.
-- **Adaptive by its own box.** Container queries, not the window: tall boxes keep words up both edges, short ones lay them along the bottom, small ones rest the less-used words (their keys still work). Nothing overlaps at any size from a 300 px thumbnail to a TV.
-- **Ink that follows the picture.** A few times a second the skin reads the frame under each group of words. Over a bright sky that group turns to dark ink; over night it stays light; where it straddles both, it keeps light ink with a firm dark halo.
+- **Adaptive by its own box.** Container queries, not the window. The words always stand up both edges, at every size: shorter boxes set them closer together and rest the less-used ones (their keys still work), down to Play on the left and Sound and Full on the right in a thumbnail. Nothing overlaps at any size from a 300 px thumbnail to a TV.
+- **One ink, solid.** Every word, number and line is solid white, or solid black where the picture under it is bright: a few times a second the skin reads the frame under each group of words and each group decides for itself. No greys, no shadows, no veils; hierarchy is size alone.
 - **The filmstrip.** While you scrub (drag the picture sideways, slide on a phone, or point at the progress line), a band opens across the middle holding the film's frames from Mux's storyboard. The pointed time sits left of the centre line, the length right of it.
 - **Volume by dragging.** Drag the picture up or down (on a phone: hold, then slide). The middle shows `SOUND 64` over a line that fills.
-- **Quality.** `AUTO 720` (the height playing now, dim) or the size you chose; each click, or Q, steps through Auto and every size the stream offers, highest first.
-- **When it ends.** The corner of the standalone player says when the film will finish in your own time (`ENDS 9:42 PM`), at the speed it is playing.
+- **Quality.** `AUTO 720` (the height playing now) or the size you chose; each click, or Q, steps through Auto and every size the stream offers, highest first.
 - **Share.** A Share word in the corner opens the link with *Copy link*, *From 02:41* (start where you are), and X, Facebook, LinkedIn, WhatsApp and Email; phones also get *More* (their own share sheet). In the feed each film is shared as its own page, so a pasted link shows that film's poster card.
 - **Captions.** CC shows the stream's own captions (Mux's), set by the skin rather than the browser, so they look the same everywhere: Inter Tight at a reading weight, warm white on a dark box that hugs each line. They sit just above the time and the line, and settle lower when the words fade. iOS full screen and picture in picture keep the system's own captions.
 - **Answers in the middle.** Keys and taps answer in thin capitals, at a size you read and forget: `PLAY`, `+10`, `1.5×`, `SOUND 40`.
 - **Sound by default.** Browsers allow sound after the first click, tap or key, so *Enter* and choosing a film start with sound. Arriving by scrolling or from a link, the film starts silent and says so; the first tap, click or key turns sound on and does nothing else.
-- **Calm moves between films.** One film per wheel turn or swipe, whatever the trackpad does after. The leaving film freezes on its frame (no black flash) and the next fades up only once it has a real frame to show.
+- **Calm moves between films.** One film per wheel turn or swipe, whatever the trackpad does after. The leaving film freezes on its frame (no black flash) and the next fades up only once it has a real frame to show. The time and the line stay put through the move; they rest only when you do.
 
 ## Keyboard, mouse and touch
 
@@ -128,8 +127,7 @@ import './anticon.css';
 | `aspect` | `'16 / 9'` | `null` to size it with `style` |
 | `autoPlay` | `false` | Starts muted, as browsers require |
 | `defaultFill` | `false` | Start filled (cover) rather than fitted |
-| `corner` | when the film ends | Anything for the top right |
-| `ink` | `'adapt'` | `'light'` for light words always, `'dark'` for dark words always |
+| `corner` | | Anything for the top right, before Share and Keys |
 | `storyboard` | the Mux storyboard | A storyboard address for the filmstrip |
 
 The skin itself is `AnticonSkin` in `src/player/Skin.jsx`; the feed in `src/App.jsx` shows how a host adds a brand, a corner, sharing and its own media.
@@ -169,4 +167,4 @@ All by Blender Studio, released under Creative Commons, streamed through Mux. Ne
 
 ## Credits
 
-Vibecoded by [@boomtumbali](https://contra.com/boomtumbali). Built on Video.js 10. Films by Blender Studio, Creative Commons. Streams hosted on Mux. The Video.js logo belongs to the Video.js project.
+Built on Video.js 10. Streams hosted on Mux. Films by Blender Studio, Creative Commons. Vibecoded by [@boomtumbali](https://contra.com/boomtumbali). The Video.js logo belongs to the Video.js project.

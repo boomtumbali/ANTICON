@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Wordmark } from './Wordmark.jsx';
-import { BlenderMark, MuxMark } from './marks/Marks.jsx';
+import { BlenderLink, MuxLink, VideoJsLink } from './credits.jsx';
 import { FILMS, pad2 } from './films.js';
 
 /**
@@ -91,7 +91,7 @@ export function IndexPage({ open, active, onClose, onPick, onHome }) {
         ))}
       </ol>
       <p className="ac-ix-foot">
-        ANTICON, a Video.js 10 player with no icons: only words and numbers. Ten Blender Studio open movies (Creative Commons), hosted on Mux.
+        ANTICON, a <VideoJsLink mark={false} /> player with no icons: only words and numbers. Ten <BlenderLink /> open movies (Creative Commons), hosted on <MuxLink mark={false} />.
         <span className="ac-ix-keys">
           Vibecoder <a className="ac-credit" href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">@boomtumbali</a> · ? for every key
         </span>
@@ -148,9 +148,21 @@ export function Credits({ film, open, onClose, onHome }) {
           {film.subtitle && <p className="ac-cr-sub">{film.subtitle}</p>}
           <dl className="ac-cr-list">
             <div>
-              <dt>Studio</dt>
+              <dt>Built on</dt>
               <dd className="ac-cr-logo">
-                <BlenderMark height={19} label="Blender" /> <span>Studio</span>
+                <VideoJsLink height={12} />
+              </dd>
+            </div>
+            <div>
+              <dt>Stream</dt>
+              <dd className="ac-cr-logo">
+                <MuxLink height={12} />
+              </dd>
+            </div>
+            <div>
+              <dt>Studio</dt>
+              <dd>
+                <BlenderLink />
               </dd>
             </div>
             <div>
@@ -160,12 +172,6 @@ export function Credits({ film, open, onClose, onHome }) {
             <div>
               <dt>License</dt>
               <dd>Creative Commons</dd>
-            </div>
-            <div>
-              <dt>Stream</dt>
-              <dd className="ac-cr-logo">
-                <MuxMark height={12} />
-              </dd>
             </div>
             <div>
               <dt>Vibecoder</dt>

@@ -69,13 +69,9 @@ function zonesOf(host) {
   }
   return out;
 }
-function useTone(root, mode, fill) {
+function useTone(root, fill) {
   const [tone, setTone] = useState({});
   useEffect(() => {
-    if (mode !== 'adapt') {
-      setTone({});
-      return undefined;
-    }
     const host = root.current;
     if (!host) return undefined;
     const W = 96; // about 13 px per sample on a laptop: fine enough to tell a letterbox band from the picture
@@ -93,12 +89,14 @@ function useTone(root, mode, fill) {
       const H = Math.max(8, Math.round((W * bh) / bw));
       cv.width = W;
       cv.height = H;
-      // the same fit as on screen; the bands around a fitted film are dark (black, or the darkened blur in the feed)
+      // the same fit as on screen; the bands around a fitted film are black
       const s = (fill ? Math.max : Math.min)(W / v.videoWidth, H / v.videoHeight);
       const dw = v.videoWidth * s;
       const dh = v.videoHeight * s;
       const py0 = Math.max(0, (H - dh) / 2 / H); // where the picture starts and ends, as fractions of the box
       const py1 = Math.min(1, 1 - (H - dh) / 2 / H);
+      const px0 = Math.max(0, (W - dw) / 2 / W);
+      const px1 = Math.min(1, 1 - (W - dw) / 2 / W);
       // the veils start where the picture starts, so a letterbox band never turns grey
       const pt = `${Math.round(py0 * bh)}px`;
       const pb = `${Math.round((1 - py1) * bh)}px`;
@@ -108,7 +106,8 @@ function useTone(root, mode, fill) {
       ctx.fillRect(0, 0, W, H);
       try {
         ctx.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
-        const px = ctx.getImageData(0, 0, W, H).data;
+        let px = ctx.getImageData(0, 0, W, H).data;
+        const next0 = {};
         // mean luminance, and the share of bright pixels: a zone can sit half on a black band, half on a white sky
         const lumOf = ([x0, y0, x1, y1]) => {
           let sum = 0;
@@ -125,17 +124,59 @@ function useTone(root, mode, fill) {
           }
           return n ? [sum / n, hi / n] : [0, 0];
         };
+        // Mattes. Solid ink cannot read across a thin black band and a bright picture at once (half of each letter
+        // would vanish). Where a fitted film leaves a band thinner than the words along that edge, and the picture
+        // just past the band is bright, the band grows (solid black, no shadow) until it holds the words.
+        const hr = host.getBoundingClientRect();
+        const reach = (sel, side) => {
+          let m = 0;
+          for (const n of host.querySelectorAll(sel)) {
+            const r = n.getBoundingClientRect();
+            if (!r.width || !r.height) continue;
+            m = Math.max(m, side === 't' ? r.bottom - hr.top : side === 'b' ? hr.bottom - r.top : side === 'l' ? r.right - hr.left : hr.right - r.left);
+          }
+          return m;
+        };
+        const mats = {};
+        const sides = [
+          ['t', py0, '.ac-tl, .ac-tc, .ac-tr', hr.height, (f) => [0, py0, 1, f]],
+          ['b', 1 - py1, '.ac-bottom', hr.height, (f) => [0, 1 - f, 1, py1]],
+          ['l', px0, '.ac-left', hr.width, (f) => [px0, 0, f, 1]],
+          ['r', 1 - px1, '.ac-right', hr.width, (f) => [1 - f, 0, px1, 1]],
+        ];
+        for (const [side, band, sel, size, strip] of sides) {
+          const need = size ? (reach(sel, side) + 6) / size : 0;
+          let on = false;
+          if (band > 0.002 && need > band && need < 0.5) {
+            const [lum] = lumOf(strip(need));
+            on = lum > (last[`mat${side}`] ? 0.36 : 0.44);
+          }
+          mats[side] = on ? need : 0;
+          next0[`mat${side}`] = on;
+        }
+        for (const side of ['t', 'b', 'l', 'r']) {
+          const val = `${Math.round(mats[side] * (side === 't' || side === 'b' ? bh : bw))}px`;
+          if (host.style.getPropertyValue(`--mat-${side}`) !== val) host.style.setProperty(`--mat-${side}`, val);
+        }
+        if (mats.t || mats.b || mats.l || mats.r) {
+          ctx.fillStyle = '#000';
+          if (mats.t) ctx.fillRect(0, 0, W, mats.t * H);
+          if (mats.b) ctx.fillRect(0, H - mats.b * H, W, mats.b * H);
+          if (mats.l) ctx.fillRect(0, 0, mats.l * W, H);
+          if (mats.r) ctx.fillRect(W - mats.r * W, 0, mats.r * W, H);
+          px = ctx.getImageData(0, 0, W, H).data;
+        }
         const zones = zonesOf(host);
         // and the picture under each veil
         zones.veilTop = [0, py0, 1, Math.min(py1, py0 + 0.2)];
         zones.veilBottom = [0, Math.max(py0, py1 - 0.24), 1, py1];
-        const next = {};
+        const next = { ...next0 };
         for (const [name, rect] of Object.entries(zones)) {
           const was = last[name] === 'light';
-          const [lum, share] = lumOf(rect);
-          const tone = lum > (was ? 0.5 : 0.62) ? 'light' : 'dark';
-          // neither ink reads over both halves of a split zone: light ink, held by a firm dark halo
-          next[name] = name !== 'center' && !name.startsWith('veil') && share > 0.18 && share < 0.82 ? 'mixed' : tone;
+          const [lum] = lumOf(rect);
+          // solid ink only, no halo and no veil: white over a dark picture, black over a bright one, switching
+          // at the middle of the scale (where each reads about as well), with a little hysteresis against flicker
+          next[name] = lum > (was ? 0.44 : 0.56) ? 'light' : 'dark';
         }
         if (Object.keys(next).some((k) => next[k] !== last[k])) {
           last = next;
@@ -148,42 +189,8 @@ function useTone(root, mode, fill) {
     const id = setInterval(read, 350);
     read();
     return () => clearInterval(id);
-  }, [root, mode, fill]);
-  // ink="dark": every zone is treated as over a bright picture, so every word is dark ink (and ink="light" keeps the light ink)
-  if (mode === 'dark') return { tl: 'light', tc: 'light', tr: 'light', bottom: 'light', left: 'light', right: 'light', center: 'light', veilTop: 'light', veilBottom: 'light' };
+  }, [root, fill]);
   return tone;
-}
-
-/**
- * When the film will end, in your own time: what is left of it, at the speed
- * it is playing, from now. It moves on while the film is paused (the end
- * gets later), and it is gone once the film has ended.
- */
-export function EndsAt() {
-  const t = usePlayer((s) => s.currentTime);
-  const d = usePlayer((s) => s.duration);
-  const rate = usePlayer((s) => s.playbackRate) || 1;
-  const ended = usePlayer((s) => s.ended);
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 15000);
-    return () => clearInterval(id);
-  }, []);
-  const fmt = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
-    } catch {
-      return null;
-    }
-  }, []);
-  if (!d || !Number.isFinite(d) || ended || !fmt) return null;
-  const left = Math.max(0, d - (t || 0)) / rate;
-  const at = fmt.format(new Date(now + left * 1000));
-  return (
-    <span className="ac-mono ac-ends" title="If you watch to the end from here, at this speed">
-      <span className="ac-dim">Ends</span> {at}
-    </span>
-  );
 }
 
 /** A switch that is a word: plain when on, a line through it when off (along the word, whichever way it reads). */
@@ -696,7 +703,7 @@ function KeysSheet({ feed, fine, onClose }) {
  * Props:
  *   title, meta        top left (meta: a short line under the title)
  *   onTitle            makes the title a link (the feed opens Credits with it)
- *   corner             top right; defaults to when the film will end, in the viewer's own time
+ *   corner             top right, before Share and Keys (optional)
  *   brand              top centre (optional)
  *   below              under the hairline, centred (optional)
  *   defaultFill        start filling the box (crop) instead of fitting the whole frame
@@ -705,7 +712,6 @@ function KeysSheet({ feed, fine, onClose }) {
  *   onNext, onPrev     a feed (the keys list then mentions the wheel; ↑/↓ stay volume, as everywhere)
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
- *   ink                'adapt' (read the picture, default), 'light' (always light ink), 'dark' (always dark ink)
  *   storyboard         a storyboard address (Mux: storyboard.json): scrubbing shows the film's frames as a strip
  *   share              { url, title, text, timed } for the Share word (default: this page); false hides it
  *   soundGate, onSoundGate   the browser started the film silent: the next tap, click or key turns sound on
@@ -729,7 +735,6 @@ export function AnticonSkin({
   canFull: canFullProp,
   overlay = false,
   autoFocus = false,
-  ink: toneMode = 'adapt',
   rootRef,
   className = '',
   style,
@@ -773,7 +778,7 @@ export function AnticonSkin({
   const fill = fillPref ?? defaultFill;
   const [peek, setPeek] = useState(null);
   const idle = !controlsVisible && !paused && !overlay;
-  const tone = useTone(root, toneMode, fill);
+  const tone = useTone(root, fill);
   const sb = useStoryboard(storyboard);
 
   const isFull = isFullProp ?? fsOn;
@@ -1219,7 +1224,6 @@ export function AnticonSkin({
       data-idle={idle || undefined}
       data-fine={fine || undefined}
       data-overlay={overlay || keysOpen || shareOpen || undefined}
-      data-ink={toneMode}
       data-tone-tl={tone.tl}
       data-tone-tc={tone.tc}
       data-tone-tr={tone.tr}
@@ -1233,6 +1237,12 @@ export function AnticonSkin({
     >
       {children}
 
+      <div className="ac-mats" aria-hidden="true">
+        <i data-s="t" />
+        <i data-s="b" />
+        <i data-s="l" />
+        <i data-s="r" />
+      </div>
       <div className="ac-edges">
         <div className="ac-tl">
           {title && (
@@ -1244,7 +1254,7 @@ export function AnticonSkin({
         </div>
         {brand && <div className="ac-tc">{brand}</div>}
         <div className="ac-tr">
-          {corner === undefined ? <EndsAt /> : corner}
+          {corner}
           {shareInfo && (
             <button type="button" className="ac-link ac-share-open" onClick={() => setShareOpen(true)} aria-haspopup="dialog">
               Share

@@ -3,10 +3,10 @@
 :root[data-theme='light'] { --lab-bg: #f3f1ec; --lab-ink-rgb: 18 18 18; --lab-stage-a: #e9e6df; --lab-stage-b: #dcd8cf; }
 html, body, #root { height: 100%; margin: 0; background: var(--lab-bg); color: rgb(var(--lab-ink-rgb)); }
 body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; transition: background-color 0.4s, color 0.4s; }
-.lab { height: 100%; display: grid; grid-template-columns: 264px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: 'head head' 'side stage' 'side read'; }
+.lab { height: 100%; display: grid; grid-template-columns: 288px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: 'head head' 'side stage' 'side read'; }
 .lab-head { grid-area: head; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px 26px; border-bottom: 1px solid rgb(var(--lab-ink-rgb) / 0.12); }
 .lab-brand { justify-self: start; font: 500 13px/1 'Inter Tight Variable', sans-serif; color: inherit; text-decoration: none; padding: 6px 0; }
-.lab-title { font: 200 22px/1 'Inter Tight Variable', sans-serif; letter-spacing: -0.01em; }
+.lab-title { font: 400 10.5px/1 'Geist Mono Variable', ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; }
 .lab-built { justify-self: end; display: flex; align-items: center; gap: 10px; }
 .lab-built, .lab-label, .lab-note, .lab-links a, .lab-read, .lab-credit { font: 400 10.5px/1.3 'Geist Mono Variable', ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; }
 .lab-built > span:first-child, .lab-note, .lab-label { color: rgb(var(--lab-ink-rgb) / 0.5); }
@@ -22,11 +22,11 @@ body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
 .lab-opt:hover { color: rgb(var(--lab-ink-rgb)); }
 .lab-opt:focus-visible, .lab-links a:focus-visible, .lab-credit a:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
 .lab-links { display: grid; gap: 8px; }
-.lab-links a { color: inherit; text-underline-offset: 3px; }
+.lab-links a { color: inherit; justify-self: start; }
 /* the credit in the same type as the links above it */
 .lab-credit { margin: 0; display: grid; gap: 6px; }
 .lab-credit span { color: rgb(var(--lab-ink-rgb) / 0.5); }
-.lab-credit a { color: inherit; justify-self: start; text-underline-offset: 3px; }
+.lab-credit a { color: inherit; justify-self: start; }
 
 .lab-stage { grid-area: stage; display: grid; place-items: center; padding: 26px; min-height: 0; overflow: hidden; background: radial-gradient(70% 70% at 50% 45%, var(--lab-stage-a), var(--lab-stage-b)); }
 .lab-frame { position: relative; outline: 1px solid rgb(var(--lab-ink-rgb) / 0.16); outline-offset: 6px; }
@@ -44,3 +44,12 @@ body { font-family: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
   .lab-side { border-right: 0; border-top: 1px solid rgb(var(--lab-ink-rgb) / 0.12); padding: 18px 16px 40px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
   .lab-read { padding: 12px 16px; }
 }
+
+/* one ink: no greys. Labels, notes, unchosen options and rules are the page's ink, solid; the chosen option keeps its dash. */
+.lab-built > span:first-child, .lab-note, .lab-label, .lab-credit span, .lab-read b, .lab-opt, .lab-read { color: rgb(var(--lab-ink-rgb)); }
+.lab-head, .lab-side, .lab-read { border-color: rgb(var(--lab-ink-rgb)); }
+.lab-theme { border-left-color: rgb(var(--lab-ink-rgb)) !important; }
+.lab-frame { outline-color: rgb(var(--lab-ink-rgb)); }
+.lab-read b { font-weight: 500; }
+
+.lab-opt > :last-child { white-space: nowrap; }

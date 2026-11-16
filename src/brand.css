@@ -19,11 +19,11 @@
 .wm-r::after { left: 0; right: calc(var(--ls) - 0.06em); }
 
 /* ---------- the light/dark word ---------- */
-.theme-word { font: 400 10.5px/1 'Geist Mono Variable', ui-monospace, monospace !important; letter-spacing: 0.16em !important; text-transform: uppercase; color: inherit; background: none; border: 0; padding: 8px 2px !important; cursor: pointer; }
+.theme-word { font: 400 10.5px/1 'Geist Mono Variable', ui-monospace, monospace !important; letter-spacing: 0.14em !important; text-transform: uppercase; color: inherit; background: none; border: 0; padding: 8px 2px !important; cursor: pointer; }
 .theme-word > span { position: relative; display: inline-block; }
 .theme-word > span::after { content: ''; position: absolute; left: -3px; top: calc(50% - 0.5px); height: 1px; width: 0; background: currentColor; transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 .theme-word[data-off] > span::after { width: calc(100% + 6px); }
-.theme-word:hover { opacity: 0.65; }
+.theme-word:hover { opacity: 1; }
 .theme-word:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
 
 /* ---------- scrollbars ----------
@@ -42,50 +42,47 @@
   * { scrollbar-width: thin; scrollbar-color: var(--sb) transparent; }
 }
 
-/* ---------- underlines: one line, drawn, and it moves ----------
- * Every underlined link and word on every page uses this one line. On hover,
- * focus or a press, it slides out to the right and draws back in from the
- * left. The film's title, underlined only under the hand, draws in from the
- * left and leaves to the right. (The name on the start page's edge stays
- * without a line.)
+/* ---------- underlines: only under the hand ----------
+ * Every link on every page: no line at rest. Pointing at it (or reaching it
+ * with the keyboard) draws one line in from the left, with the same timing as
+ * the line through an off word; leaving takes it back the same way, and a
+ * press clears it. The line is exactly as long as the label and sits a clear
+ * step below it. It is drawn by ::after, so it never changes the label's own
+ * box: labels in a row keep one baseline. (--ul-x and --ul-b are the label's
+ * own padding, so the line runs under the letters, not under the padding.)
  */
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a) {
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link) {
+  position: relative;
   text-decoration: none !important;
   border-bottom: 0 !important;
-  background-image: linear-gradient(currentColor, currentColor);
-  background-repeat: no-repeat;
-  background-origin: content-box;
-  background-size: 100% 1px;
-  background-position: 0 100%;
-  padding-bottom: 3px;
+  background-image: none !important;
 }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a):is(:hover, :focus-visible) { animation: ul-sweep 0.7s cubic-bezier(0.65, 0, 0.35, 1); }
-:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a):active { animation: ul-sweep-press 0.55s cubic-bezier(0.65, 0, 0.35, 1); }
-@keyframes ul-sweep {
-  0% { background-size: 100% 1px; background-position: 100% 100%; }
-  45% { background-size: 0% 1px; background-position: 100% 100%; }
-  55% { background-size: 0% 1px; background-position: 0 100%; }
-  100% { background-size: 100% 1px; background-position: 0 100%; }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after {
+  content: '';
+  position: absolute;
+  left: var(--ul-x, 0px);
+  bottom: calc(var(--ul-b, 0px) - max(4px, 0.16em));
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  pointer-events: none;
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* the same sweep under a press (a second name, so a click replays it while the pointer is still over the link) */
-@keyframes ul-sweep-press {
-  0% { background-size: 100% 1px; background-position: 100% 100%; }
-  45% { background-size: 0% 1px; background-position: 100% 100%; }
-  55% { background-size: 0% 1px; background-position: 0 100%; }
-  100% { background-size: 100% 1px; background-position: 0 100%; }
+@media (hover: hover) {
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):hover::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
 }
-/* underlined only under the hand: drawn in from the left, away to the right */
-:root button.ac-title {
-  text-decoration: none !important;
-  background-image: linear-gradient(currentColor, currentColor);
-  background-repeat: no-repeat;
-  background-size: 0% 1px;
-  background-position: 100% 100%;
-  padding-bottom: 2px;
-  transition: background-size 0.45s cubic-bezier(0.65, 0, 0.35, 1);
-}
-:root button.ac-title:is(:hover, :focus-visible) { background-size: 100% 1px; background-position: 0 100%; }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):focus-visible::after { width: calc(100% - 2 * var(--ul-x, 0px)); }
+:root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link):active::after { width: 0; transition-duration: 0.18s; }
+/* each label's own padding */
+:root .ac-link { --ul-x: 6px; --ul-b: 8px; }
+:root .ln-nav a { --ul-b: 8px; }
+:root .ln-enter { --ul-x: 6px; --ul-b: 4px; }
+:root .ac-share-copy { --ul-b: 10px; }
 @media (prefers-reduced-motion: reduce) {
-  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-foot a) { animation: none !important; }
-  :root button.ac-title { transition: none; }
+  :root :is(.ln-nav a, .ln-enter, .ln-name, .ac-link, .ac-credit, .ac-share-copy, .lab-links a, .lab-credit a, .ep-link, .ep-nav a, .ep-foot a, button.ac-title, .mk-link)::after { transition: none; }
 }
+
+/* a credit's link (Video.js, Mux, Blender Studio): its mark or name in the surrounding ink */
+.mk-link { color: inherit; text-decoration: none; display: inline-flex; align-items: center; vertical-align: middle; }
+.mk-link svg { display: block; }
+:is(p, span, dd) > .mk-link:only-child, .ln-kicker .mk-link, .ac-ix-foot .mk-link, .ep-intro .mk-link { vertical-align: baseline; display: inline; }

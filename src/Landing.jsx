@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { FILMS, LIST_SIZES, pad2, stillSet } from './films.js';
 import { warmFilm } from './warm.js';
-import { VideoJsMark } from './lab/VideoJsMark.jsx';
 import { Wordmark } from './Wordmark.jsx';
-import { BlenderMark, MuxMark } from './marks/Marks.jsx';
+import { BlenderLink, MuxLink, VideoJsLink } from './credits.jsx';
 import { ThemeWord } from './theme.jsx';
 
 /*
@@ -116,7 +115,9 @@ export function Landing({ hidden, onEnter }) {
       </header>
 
       <section className="ln-hero" data-name="Intro">
-        <p className="ln-kicker ln-mono">A video player · Built on Video.js 10</p>
+        <p className="ln-kicker ln-mono">
+          A video player · Built on <VideoJsLink mark={false} />
+        </p>
         <h1 className="ln-mark" aria-label="ANTICON">
           <span aria-hidden="true">ΛNT</span>
           <span className="ln-icon" aria-hidden="true">
@@ -187,7 +188,7 @@ export function Landing({ hidden, onEnter }) {
           <li>
             <span className="ln-mono ln-dim">02</span>
             <h2>On the edges</h2>
-            <p>Playback reads up the left edge, view and sound down the right, time along the bottom. On a short screen they all lie along the bottom.</p>
+            <p>Playback reads up the left edge, view and sound down the right, time along the bottom. On a short screen the edges keep their words, fewer and closer.</p>
           </li>
           <li>
             <span className="ln-mono ln-dim">03</span>
@@ -202,28 +203,28 @@ export function Landing({ hidden, onEnter }) {
         </ol>
         <footer className="ln-credits">
           <p>
-            <span className="ln-mono ln-dim">Vibecoder</span>
-            <a className="ln-name" href={CONTRA} target="_blank" rel="noreferrer">
-              @boomtumbali
-            </a>
-          </p>
-          <p>
             <span className="ln-mono ln-dim">Built on</span>
             <span className="ln-vjs">
-              <VideoJsMark height={15} ink="currentColor" /> <span className="ln-mono">10</span>
-            </span>
-          </p>
-          <p>
-            <span className="ln-mono ln-dim">Films</span>
-            <span className="ln-logo">
-              <BlenderMark height={22} label="Blender" /> <span>Studio, Creative Commons</span>
+              <VideoJsLink height={15} />
             </span>
           </p>
           <p>
             <span className="ln-mono ln-dim">Streams</span>
             <span className="ln-logo">
-              <MuxMark height={14} />
+              <MuxLink height={14} />
             </span>
+          </p>
+          <p>
+            <span className="ln-mono ln-dim">Films</span>
+            <span>
+              <BlenderLink />, Creative Commons
+            </span>
+          </p>
+          <p>
+            <span className="ln-mono ln-dim">Vibecoder</span>
+            <a className="ln-name" href={CONTRA} target="_blank" rel="noreferrer">
+              @boomtumbali
+            </a>
           </p>
         </footer>
       </section>

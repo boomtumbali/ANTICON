@@ -9,7 +9,7 @@ import { FILMS, LOCAL, localSrc, pad2, storyboardOf } from './films.js';
 import { IndexPage, Credits } from './IndexPage.jsx';
 import { Landing } from './Landing.jsx';
 import { Wordmark } from './Wordmark.jsx';
-import { ambientOf, warmFilm } from './warm.js';
+import { warmFilm } from './warm.js';
 
 /*
  * The site: a landing page, then the feed. Nothing plays until you choose a
@@ -536,7 +536,6 @@ function Slide({ p, film, front, playing, shown, els, soundPref, from, loop, onE
   return (
     <section ref={rootEl} className="ac-slide" data-front={front || undefined} aria-label={`${film.title}, ${film.year}`}>
       <div ref={inner} className="ac-slide-in">
-        <img className="ac-ambient" src={ambientOf(film)} alt="" aria-hidden="true" decoding="async" />
         <div className="ac-cover" data-gone={visible || undefined} aria-hidden="true">
           <span className="ac-cover-n ac-mono">{pad2(film.n)}</span>
           <span className="ac-cover-t">{film.title}</span>

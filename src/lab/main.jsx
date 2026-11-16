@@ -8,7 +8,7 @@ import '../anticon.css';
 import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
-import { VideoJsMark } from './VideoJsMark.jsx';
+import { VideoJsLink } from '../credits.jsx';
 import { Wordmark } from '../Wordmark.jsx';
 import { ThemeWord } from '../theme.jsx';
 
@@ -17,7 +17,7 @@ import { ThemeWord } from '../theme.jsx';
  * (phone either way, tablet, laptop, desktop, TV, or whatever the window is)
  * and the pictures that are hardest to read over (white, paper, black, bars,
  * half and half). The readout says what the skin decided: its box, how the
- * edges are set, and which ink each edge chose.
+ * edges are set, and which text colour each edge chose.
  */
 
 const SCREENS = [
@@ -36,12 +36,6 @@ const CARDS = [
   { id: 'black', name: 'Black', src: '/test/black.mp4' },
   { id: 'bars', name: 'Bars', src: '/test/bars.mp4' },
   { id: 'split', name: 'Half and half', src: '/test/split.mp4' },
-];
-// each choice's id is the ink it gives
-const INKS = [
-  { id: 'adapt', name: 'Adapt to the picture' },
-  { id: 'light', name: 'Always light ink' },
-  { id: 'dark', name: 'Always dark ink' },
 ];
 
 const read = (key, fallback) => {
@@ -81,10 +75,8 @@ function Choice({ label, items, value, onChange }) {
 function Lab() {
   const [screen, setScreen] = useState(() => read('screen', matchMedia('(max-width: 800px)').matches ? 'free' : 'phone-side'));
   const [pic, setPic] = useState(() => read('pic', 'sprite-fright'));
-  const [ink, setInk] = useState(() => read('ink', 'adapt')); // (a new key: the old one stored the opposite names)
   useEffect(() => keep('screen', screen), [screen]);
   useEffect(() => keep('pic', pic), [pic]);
-  useEffect(() => keep('ink', ink), [ink]);
 
   // the stage measures itself; a screen bigger than the stage is shown scaled down, at its true size inside
   const stage = useRef(null);
@@ -117,7 +109,7 @@ function Lab() {
         box: `${ac.clientWidth} × ${ac.clientHeight}`,
         edges: left && getComputedStyle(left).writingMode.startsWith('vertical') ? 'Along both edges' : 'Along the bottom',
         hidden: [...ac.querySelectorAll('.ac-edges [data-pri]')].filter((e) => getComputedStyle(e).display === 'none').length,
-        ink: [['tl', 'title'], ['tr', 'corner'], ['left', 'left'], ['right', 'right'], ['bottom', 'bottom']].map(([z, n]) => `${n} ${{ light: 'dark', mixed: 'light, haloed' }[d[`tone${z[0].toUpperCase()}${z.slice(1)}`]] ?? 'light'}`).join(' · '),
+        text: [['tl', 'title'], ['tr', 'corner'], ['left', 'left'], ['right', 'right'], ['bottom', 'bottom']].map(([z, n]) => `${n} ${{ light: 'dark', mixed: 'light, haloed' }[d[`tone${z[0].toUpperCase()}${z.slice(1)}`]] ?? 'light'}`).join(' · '),
       });
     }, 300);
     return () => clearInterval(id);
@@ -132,8 +124,7 @@ function Lab() {
         <span className="lab-title">Player lab</span>
         <span className="lab-built">
           <span>Built on</span>
-          <VideoJsMark height={13} ink="currentColor" />
-          <span>10</span>
+          <VideoJsLink height={13} />
           <ThemeWord className="lab-theme" />
         </span>
       </header>
@@ -146,7 +137,6 @@ function Lab() {
           onChange={setPic}
           items={[...CARDS.map((c) => ({ id: c.id, name: c.name, note: 'card' })), ...FILMS.map((f) => ({ id: f.id, name: f.title, note: String(f.year) }))]}
         />
-        <Choice label="Ink" value={ink} onChange={setInk} items={INKS} />
         <nav className="lab-links" aria-label="Pages">
           <a href="/">The feed</a>
           <a href="/embed/">The player on a page</a>
@@ -162,7 +152,7 @@ function Lab() {
       <main className="lab-stage" ref={stage}>
         <div className="lab-frame" style={{ width: w * k, height: h * k }}>
           <div style={{ width: w, height: h, transform: `scale(${k})`, transformOrigin: '0 0' }}>
-            <AnticonPlayer key={`${pic}`} {...media} autoPlay ink={ink} aspect={null} style={{ width: w, height: h }} />
+            <AnticonPlayer key={`${pic}`} {...media} autoPlay aspect={null} style={{ width: w, height: h }} />
           </div>
         </div>
       </main>
@@ -179,7 +169,7 @@ function Lab() {
               {out.hidden > 0 && <span className="lab-note"> · {out.hidden} resting</span>}
             </span>
             <span>
-              <b>Ink</b> {out.ink}
+              <b>Text colour</b> {out.text}
             </span>
           </>
         )}

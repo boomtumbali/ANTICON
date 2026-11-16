@@ -8,9 +8,8 @@ import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
 import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
-import { VideoJsMark } from '../lab/VideoJsMark.jsx';
 import { Wordmark } from '../Wordmark.jsx';
-import { BlenderMark, MuxMark } from '../marks/Marks.jsx';
+import { BlenderLink, MuxLink, VideoJsLink } from '../credits.jsx';
 import { ThemeWord } from '../theme.jsx';
 
 /*
@@ -42,7 +41,7 @@ function Page() {
           <Wordmark />
         </a>
         <span className="ep-built">
-          Built on <VideoJsMark height={12} ink="currentColor" /> 10
+          Built on <VideoJsLink height={12} />
         </span>
         <nav className="ep-nav">
           <a className="ep-link" href="/">The feed</a>
@@ -54,9 +53,9 @@ function Page() {
         <p className="ep-kicker">The player on its own</p>
         <h1>One film, any box.</h1>
         <p>
-          ANTICON is a Video.js 10 player with no icons. Here it sits in an ordinary page, one film per player, at the sizes a
-          site would really give it. Every word is placed from the player's own box: tall boxes keep words along both edges, shorter ones lay them
-          along the bottom, small ones keep only what you need.
+          ANTICON is a <VideoJsLink mark={false} /> player with no icons. Here it sits in an ordinary page, one film per player, at the sizes a
+          site would really give it. Every word is placed from the player's own box: the words always stand up both edges, and the shorter the box, the
+          fewer and closer they are, down to Play, Sound and Full.
         </p>
       </section>
 
@@ -96,16 +95,25 @@ function Page() {
         <p>Give it a width and an aspect ratio. A Mux playback ID, or any MP4 or HLS link as <code>src</code>.</p>
       </section>
       <footer className="ep-foot">
-        <span>Vibecoder</span>
-        <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
-          @boomtumbali
-        </a>
-        <span className="ep-foot-note">
+        <span className="ep-credit">
+          <span>Built on</span>
+          <VideoJsLink height={11} />
+        </span>
+        <span className="ep-credit">
+          <span>Streams</span>
+          <MuxLink height={10} />
+        </span>
+        <span className="ep-credit">
           <span>Films</span>
-          <BlenderMark height={17} label="Blender" />
-          <span>Studio, Creative Commons</span>
-          <span className="ep-gap">Streams</span>
-          <MuxMark height={11} />
+          <span>
+            <BlenderLink />, Creative Commons
+          </span>
+        </span>
+        <span className="ep-credit">
+          <span>Vibecoder</span>
+          <a href="https://contra.com/boomtumbali" target="_blank" rel="noreferrer">
+            @boomtumbali
+          </a>
         </span>
       </footer>
     </main>
