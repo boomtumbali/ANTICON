@@ -41,6 +41,8 @@
 /* ANT + ICON: the icon is switched off, the way the player switches anything off */
 .ln-icon::after { content: ''; position: absolute; left: -0.04em; right: -0.06em; top: 50%; height: max(1px, 0.011em); background: currentColor; transform-origin: 0 50%; animation: ln-strike 1.3s var(--ease) 0.45s both; }
 @keyframes ln-strike { from { transform: scaleX(0); } }
+/* the strike waits for the preloader to part */
+html[data-loading] .ln-icon::after { animation-play-state: paused; }
 .ln-lede { margin: 0; max-width: 31ch; font: 250 clamp(19px, 2.1vw, 30px)/1.28 var(--sans); letter-spacing: -0.01em; color: rgb(var(--ink-rgb) / 0.86); text-wrap: balance; }
 .ln-try { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 18px; }
 .ln-try > .ln-mono { margin-right: 6px; }
@@ -96,8 +98,8 @@
 .ln-vjs { display: inline-flex; align-items: center; gap: 8px; height: 22px; }
 
 /* ---------- the end of the page: where the films begin ---------- */
-.ln-door { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; padding: 0 var(--gut) 60px; background: linear-gradient(#000, #070707); }
-.ln-begin { font: 150 clamp(64px, 14vw, 240px)/0.9 var(--sans) !important; letter-spacing: -0.03em; }
+.ln-door { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: clamp(18px, 3vh, 30px); text-align: center; padding: 0 var(--gut) 60px; background: linear-gradient(#000, #070707); }
+.ln-begin { font: 150 clamp(64px, 14vw, 240px)/1.2 var(--sans) !important; letter-spacing: -0.03em; padding: 0 0.04em !important; }
 .ln-begin:hover { opacity: 0.75; }
 
 /* ---------- the line along the bottom ---------- */

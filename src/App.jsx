@@ -4,9 +4,10 @@ import { MuxVideo } from '@videojs/react/media/mux-video';
 import { MuxData } from '@videojs/react/extensions/mux-data';
 import { Player } from './player/core.js';
 import { AnticonSkin } from './player/Skin.jsx';
-import { FILMS, LOCAL, localSrc, pad2, stillOf } from './films.js';
+import { FILMS, LOCAL, localSrc, pad2, storyboardOf } from './films.js';
 import { IndexPage, Credits } from './IndexPage.jsx';
 import { Landing } from './Landing.jsx';
+import { ambientOf, warmFilm } from './warm.js';
 
 /*
  * The site: a landing page, then the feed. Nothing plays until you choose a
@@ -334,6 +335,16 @@ function Feed({ start, closing, onExit, onClosed }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // once a film settles, open the way to the ones either side (and their storyboards) while you watch
+  useEffect(() => {
+    if (move) return undefined;
+    const id = setTimeout(() => {
+      warmFilm(FILMS[mod(pos + 1)], { storyboard: true });
+      warmFilm(FILMS[mod(pos - 1)]);
+    }, 2500);
+    return () => clearTimeout(id);
+  }, [pos, move]);
+
   // the address names the film, so a link opens on it
   useEffect(() => {
     if (!closing) history.replaceState(null, '', `#${FILMS[mod(pos)].id}`);
@@ -429,6 +440,7 @@ function Feed({ start, closing, onExit, onClosed }) {
       overlay={!!page || closing}
       soundGate={gate}
       onSoundGate={openSound}
+      storyboard={storyboardOf(film)}
       label={`ANTICON, ${film.title}, film ${film.n} of ${N}`}
     >
       <div className="ac-stage" aria-hidden={page ? true : undefined}>
@@ -498,7 +510,7 @@ function Slide({ p, film, front, playing, shown, els, soundPref, from, loop, onE
   return (
     <section ref={rootEl} className="ac-slide" data-front={front || undefined} aria-label={`${film.title}, ${film.year}`}>
       <div ref={inner} className="ac-slide-in">
-        <img className="ac-ambient" src={LOCAL ? film.poster : stillOf(film, 480)} alt="" aria-hidden="true" decoding="async" />
+        <img className="ac-ambient" src={ambientOf(film)} alt="" aria-hidden="true" decoding="async" />
         <div className="ac-cover" data-gone={visible || undefined} aria-hidden="true">
           <span className="ac-cover-n ac-mono">{pad2(film.n)}</span>
           <span className="ac-cover-t">{film.title}</span>
@@ -537,6 +549,7 @@ function Film({ film, visible, soundPref, from, loop, onReady, onEnded, onSilenc
       if (said) return;
       said = true;
       cb.current.onReady();
+      window.dispatchEvent(new Event('anticon:ready')); // the preloader waits for this on a film's link
     };
     // a real frame, not just "can play": the first painted frame where the browser offers it
     const onPlaying = () => {

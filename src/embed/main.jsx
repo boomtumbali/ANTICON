@@ -6,7 +6,7 @@ import '@fontsource-variable/geist-mono';
 import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
-import { FILMS, LOCAL, localSrc } from '../films.js';
+import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { VideoJsMark } from '../lab/VideoJsMark.jsx';
 
 /*
@@ -18,7 +18,7 @@ const pick = (id) => FILMS.find((f) => f.id === id);
 const props = (f) => ({
   title: f.title,
   meta: `${f.year} · ${f.studio}`,
-  ...(LOCAL ? { src: localSrc(f) } : { playbackId: f.playbackId }),
+  ...(LOCAL ? { src: localSrc(f), storyboard: storyboardOf(f) } : { playbackId: f.playbackId }),
 });
 
 const CODE = `import { AnticonPlayer } from './player/AnticonPlayer.jsx';

@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/cover.png" alt="ANTICON by @boomtumbali: a video player without icons" width="100%"></p>
+
 # ANTICON
 
 **A video player without icons.** Every control is a word or a number, set in thin type. A control that can be on or off is a word: when it's off, a hairline runs through its middle; click it again and the line lifts. Progress is a single hairline with no knob. The words sit on the edges of the frame and run along each edge's own axis, so the player reads like a typographic poster rather than a toolbar.
@@ -9,6 +11,32 @@ Player: **Boom Tumbali** · [contra.com/boomtumbali](https://contra.com/boomtumb
 **Live:** [anticon-blond.vercel.app](https://anticon-blond.vercel.app) · **Source:** [github.com/boomtumbali/anticon](https://github.com/boomtumbali/anticon)
 
 ---
+
+## A look
+
+**The start page.** Nothing plays until you choose. ICON is struck out, the way the player strikes out anything that is off.
+
+![The start page: ANTICON with a line through ICON, a line of on/off words, and Enter, with sound](docs/start.jpg)
+
+**The feed.** Words on the edges of the frame, each along its own edge's axis; one hairline for progress.
+
+![A film in the feed, paused: title top left, playback words up the left edge, view and sound words down the right, time and the hairline along the bottom](docs/feed.jpg)
+
+**Scrubbing.** Point at or drag the progress line and the film's own frames run across the middle as one continuous strip. The frame on the centre line is the moment you are pointing at.
+
+![Scrubbing: a strip of frames from the film across the middle of the screen, a vertical line through the centre frame, and the pointed time above it](docs/scrub.jpg)
+
+**Moving between films.** The leaving film freezes on its frame and lifts away; the next rises with its name, a hairline on its leading edge.
+
+![Halfway through a move: the last film's frozen frame lifting and darkening at the top, the next film's title rising from below](docs/move.jpg)
+
+**On a phone.** The start page, a film fitted with its own colours blurred around it, and the Index.
+
+![Three phone screens: the start page, a film in the feed, and the Index](docs/phone.jpg)
+
+**The player lab.** Every screen size, and the pictures hardest to read over. On a white card, the edges switch to dark words by themselves.
+
+![The player lab at laptop size on a white test card, with the readout of which ink each edge chose](docs/lab.jpg)
 
 ## Pages
 
@@ -27,6 +55,28 @@ Player: **Boom Tumbali** · [contra.com/boomtumbali](https://contra.com/boomtumb
 - **How it plays**, in four short notes, and the credits.
 - **The line along the bottom** fills as you read down, like the player's own progress line. Where it ends, the films begin: the last screen is *Begin*, and scrolling onto it opens the feed.
 
+## The preloader
+
+The page arrives as the A of ANTICON on black. Its crossbar draws out to the edges of the screen as the page loads, then the screen parts along that line to show the start page, and the strike runs through ICON. The progress is real: the two typefaces and the ten stills at the size your screen will use (or, on a film's link, that film's first frame). It waits at least 0.9 seconds so it can be read, and never more than 4. It is plain HTML and CSS in `index.html`, so it shows before any script has loaded.
+
+## Scrubbing: the filmstrip
+
+While you scrub (pointing at the progress line, dragging it, or sliding sideways on a phone), a band opens out of a hairline across the middle of the picture. It holds the film's frames in order, edge to edge, like a strip of film.
+
+- **The centre frame is the moment you point at.** A line runs the full height of the screen through it, the pointed time sits above it, and the frames either side step back.
+- **Continuous.** The strip slides with your pointer through each frame and on to the next. It is eased (each frame of animation covers about a fifth of the remaining distance), so it glides rather than jumps.
+- **From Mux storyboards.** Mux publishes, for every film, one image holding 50 frames from across it (100 for films over fifteen minutes) and a JSON index of when each starts. One small download gives the strip every frame. It is fetched a moment after the film starts, so it never slows the first frames, and the next film's is fetched while you watch.
+- When you let go, the band closes back into its hairline. Without a storyboard (a plain MP4), scrubbing shows the large thin time instead.
+
+## Loading fast
+
+- **Stills at the size the screen needs.** The start page asks Mux for each still at 480, 720, 960 or 1280 px wide (`srcset`), and the preloader requests the same size, so they are in the cache when you scroll to them.
+- **The blurred still behind a fitted film is 240 px wide**, since it is blurred to nothing anyway.
+- **Posters** for the Index are stored at the size they are shown (460 px wide, about half the bytes they were).
+- **Warming.** Pointing at a film on the start page, or watching the film before it, opens the connection to Mux and fetches that film's first playlist and blurred still. The next film's storyboard loads while you watch.
+- **Connections early.** `index.html` opens connections to Mux's stream and image servers before any script runs.
+- **Streams start quickly.** hls.js starts at a moderate quality, so the first frame arrives soon, then climbs. The film fades up on its first painted frame, never before.
+
 ## Moving between films
 
 The feed is not a scrolling list. One film is on screen; a move is a single timed transition, so a fast trackpad glide or a spinning wheel never throws you three films on.
@@ -38,6 +88,7 @@ The feed is not a scrolling list. One film is on screen; a move is a single time
 - **Endless.** Film 10 is followed by film 1, moving the same way. The corner counts `10 / 10`, then `01 / 10`.
 - **Where you left it.** Go back to a film and it continues from where you left it.
 - Reduced motion turns the move into a short crossfade.
+- **Index.** All ten titles on one screen. Point at a title and its poster follows the pointer and changes the moment you reach the next row (all ten posters load with the Index and crossfade, so nothing lags behind). With the keyboard, ↑ ↓ move through the list and the poster sits beside the chosen row.
 
 ## Sound
 
@@ -168,6 +219,8 @@ import './anticon.css';
 | `corner` | a clock | Anything for the top right |
 | `tone` | `'adapt'` | `'dark'` or `'light'` to fix the ink |
 
+Give it a `storyboard` address for the filmstrip; with a `playbackId` it uses that film's Mux storyboard automatically.
+
 For a host that needs more (the feed), `AnticonSkin` in `src/player/Skin.jsx` takes the media as children plus `brand`, `below`, `onTitle`, `onNext` / `onPrev`, `onFullscreen`, `loop` / `onLoop`, `overlay`, and `soundGate` / `onSoundGate` (the next tap, click or key turns sound on instead of playing or pausing).
 
 ## What it uses from Video.js 10 and Mux
@@ -212,6 +265,12 @@ All by Blender Studio, released under Creative Commons, streamed through Mux.
 | 09 | Sprite Fright | 2021 |
 | 10 | Coffee Run | 2020 |
 
+## Sharing
+
+`public/og.png` (1200 × 630) is the picture a link shows in Messenger, X, Slack, Discord, LinkedIn and the rest: the ANTICON lockup (the icon at the full height of the two lines, ANTICON with ICON struck out, *by @boomtumbali* beneath), set inside the player's own frame of edge words and a progress hairline. Every page carries Open Graph and Twitter card tags pointing to it. `docs/cover.png` is the same image at twice the size, for this README.
+
+After a deploy, a site that has already shown the old link may keep its cached preview for a while. Facebook's [Sharing Debugger](https://developers.facebook.com/tools/debug/) (Scrape Again) refreshes Messenger and Facebook.
+
 ## Type and mark
 
 Inter Tight (variable, thin weights) for words; Geist Mono for numbers and labels. Both are bundled through Fontsource, so nothing loads from a font CDN.
@@ -224,7 +283,10 @@ The icon is the A of ANTICON, drawn from Inter Tight itself (converted to an out
 | --- | --- |
 | `src/App.jsx` | The site: start page, then the feed and its transition engine |
 | `src/Landing.jsx`, `src/landing.css` | The start page |
-| `src/player/Skin.jsx` | The skin: edges, words, keys, touch, ink |
+| `src/player/Skin.jsx` | The skin: edges, words, keys, touch, ink, filmstrip |
+| `src/player/storyboard.js` | Loading Mux storyboards; which frame holds a time |
+| `src/boot.js` | The preloader's progress |
+| `src/warm.js` | Warming the films you are likely to watch next |
 | `src/player/AnticonPlayer.jsx` | The standalone player |
 | `src/anticon.css` | The skin's styles, by container queries |
 | `src/IndexPage.jsx` | Index and Credits |
@@ -233,6 +295,8 @@ The icon is the A of ANTICON, drawn from Inter Tight itself (converted to an out
 | `src/films.js` | The ten films and their Mux playback IDs |
 | `src/vercel.js` | Vercel Analytics and Speed Insights |
 | `public/test/` | The lab's test cards (white, paper, black, bars, half and half) |
+| `public/og.png` | The share picture |
+| `docs/` | The pictures in this README |
 
 ## Credits
 

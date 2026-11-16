@@ -12,15 +12,15 @@ import { AnticonSkin } from './Skin.jsx';
  *
  *   <AnticonPlayer playbackId="…" title="Sprite Fright" meta="2021 · Blender Studio" />
  */
-export function AnticonPlayer({ title, meta, playbackId, src, poster, autoPlay = false, aspect = '16 / 9', defaultFill = false, corner, tone, className = '', style }) {
+export function AnticonPlayer({ title, meta, playbackId, src, poster, storyboard, autoPlay = false, aspect = '16 / 9', defaultFill = false, corner, tone, className = '', style }) {
   return (
     <Player>
-      <Single {...{ title, meta, playbackId, src, poster, autoPlay, aspect, defaultFill, corner, tone, className, style }} />
+      <Single {...{ title, meta, playbackId, src, poster, storyboard, autoPlay, aspect, defaultFill, corner, tone, className, style }} />
     </Player>
   );
 }
 
-function Single({ title, meta, playbackId, src, poster, autoPlay, aspect, defaultFill, corner, tone, className, style }) {
+function Single({ title, meta, playbackId, src, poster, storyboard, autoPlay, aspect, defaultFill, corner, tone, className, style }) {
   const media = useRef(null);
   const [loop, setLoop] = useState(false);
   useEffect(() => {
@@ -37,6 +37,7 @@ function Single({ title, meta, playbackId, src, poster, autoPlay, aspect, defaul
       corner={corner}
       defaultFill={defaultFill}
       tone={tone}
+      storyboard={storyboard ?? (playbackId ? `https://image.mux.com/${playbackId}/storyboard.json?format=webp` : undefined)}
       className={`ac--box ${className}`.trim()}
       style={aspect ? { aspectRatio: aspect, ...style } : style}
     >

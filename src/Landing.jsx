@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FILMS, LOCAL, pad2, stillOf } from './films.js';
+import { FILMS, LIST_SIZES, pad2, stillSet } from './films.js';
+import { warmFilm } from './warm.js';
 import { VideoJsMark } from './lab/VideoJsMark.jsx';
 
 /*
@@ -129,7 +130,7 @@ export function Landing({ hidden, onEnter }) {
           <Toggle init={false}>Fill</Toggle>
         </div>
         <div className="ln-cta">
-          <button type="button" className="ln-enter" onClick={() => enter(0)}>
+          <button type="button" className="ln-enter" onClick={() => enter(0)} onPointerEnter={() => warmFilm(FILMS[0])} onFocus={() => warmFilm(FILMS[0])}>
             Enter, with sound
           </button>
           <span className="ln-mono ln-dim">or keep scrolling</span>
@@ -152,14 +153,14 @@ export function Landing({ hidden, onEnter }) {
         <ol className="ln-list">
           {FILMS.map((f, i) => (
             <li key={f.id}>
-              <button type="button" className="ln-row" onClick={() => enter(i)} aria-label={`Play ${f.title}, ${f.year}`}>
+              <button type="button" className="ln-row" onClick={() => enter(i)} onPointerEnter={() => warmFilm(f)} onFocus={() => warmFilm(f)} aria-label={`Play ${f.title}, ${f.year}`}>
                 <span className="ln-n ln-mono">{pad2(f.n)}</span>
                 <span className="ln-t">
                   {f.title}
                   {f.subtitle && <span className="ln-sub ln-mono">{f.subtitle}</span>}
                 </span>
                 <span className="ln-pic" aria-hidden="true">
-                  <img src={LOCAL ? f.poster : stillOf(f, 960)} alt="" loading="lazy" decoding="async" />
+                  <img {...stillSet(f, LIST_SIZES)} alt="" decoding="async" />
                 </span>
                 <span className="ln-y ln-mono">{f.year}</span>
               </button>

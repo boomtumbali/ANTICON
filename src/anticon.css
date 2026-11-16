@@ -148,12 +148,15 @@ button.ac-title:hover { text-decoration-color: currentColor; }
 .ac-ix-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 30px; }
 .ac-ix-top > :last-child { justify-self: end; margin-right: -6px; }
 .ac-ix-list { list-style: none; margin: 0; padding: 0; align-self: center; }
-.ac-ix-row { width: 100%; display: grid; grid-template-columns: clamp(40px, 9cqw, 140px) minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 0.14em 0; border: 0; border-top: 1px solid rgb(var(--fg-rgb) / 0.12); background: none; color: var(--dim); text-align: left; cursor: pointer; font: 200 clamp(24px, min(4.4cqw, 6.2cqh), 66px)/1.1 var(--sans); letter-spacing: -0.02em; transition: color 0.2s, padding 0.35s var(--ease); }
+.ac-ix-row { width: 100%; display: grid; grid-template-columns: clamp(40px, 9cqw, 140px) minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 0.14em 0; border: 0; border-top: 1px solid rgb(var(--fg-rgb) / 0.12); background: none; color: var(--dim); text-align: left; cursor: pointer; font: 200 clamp(22px, min(4.4cqw, (100cqh - 230px) / 14), 66px)/1.1 var(--sans); letter-spacing: -0.02em; transition: color 0.2s, padding 0.35s var(--ease); }
 li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 .ac-ix-row:hover, .ac-ix-row:focus-visible, .ac-ix-row[aria-current] { color: var(--fg); }
 .ac-ix-row:hover { padding-left: 0.3em; }
 .ac-ix-n, .ac-ix-y { font: 400 10.5px/1 var(--mono); letter-spacing: 0.14em; color: var(--dim); }
-.ac-ix-poster { position: fixed; z-index: 41; width: clamp(150px, 15vw, 230px); translate: 28px -50%; pointer-events: none; box-shadow: 0 20px 60px rgb(0 0 0 / 0.6); animation: ac-in 0.25s var(--ease) both; }
+.ac-ix-peek { position: fixed; left: 0; top: 0; z-index: 41; width: clamp(150px, 15vw, 230px); aspect-ratio: 2 / 3; translate: 32px -50%; pointer-events: none; box-shadow: 0 20px 60px rgb(0 0 0 / 0.6); opacity: 0; scale: 0.96; transition: opacity 0.25s var(--ease), scale 0.35s var(--ease); will-change: transform; }
+.ac-ix-peek[data-on] { opacity: 1; scale: 1; }
+.ac-ix-peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.22s linear; }
+.ac-ix-peek img[data-on] { opacity: 1; }
 .ac-ix-foot { margin: 0; max-width: 72ch; font: 400 10.5px/1.7 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
 .ac-ix-keys { display: block; margin-top: 6px; }
 .ac-cr-body { align-self: center; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(24px, 6cqw, 96px); align-items: center; width: min(1120px, 100%); margin: 0 auto; }
@@ -205,7 +208,7 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 @container ac (max-width: 640px) {
   .ac-cr-body { grid-template-columns: 1fr; }
   .ac-cr-poster { width: min(56cqw, 240px); order: -1; }
-  .ac-ix-poster { display: none; }
+  .ac-ix-peek { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -279,3 +282,26 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 .ac-ix .ac-brand { display: inline-block; }
 /* the sound hint stays while the controls rest: it is the one thing to know */
 .ac[data-idle] .ac-below:has(.ac-gate) { opacity: 1; pointer-events: auto; }
+
+/* ---------- the filmstrip: the film's frames across the middle while you scrub ---------- */
+.ac-strip { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.ac-strip-dim { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 0.45s var(--ease); }
+.ac-strip[data-open] .ac-strip-dim { opacity: 0.38; }
+/* the band opens out of a hairline and closes back into one */
+.ac-strip-band { position: absolute; left: 0; right: 0; top: 50%; height: var(--th); translate: 0 -50%; overflow: hidden; clip-path: inset(50% 0 50% 0); transition: clip-path 0.38s cubic-bezier(0.55, 0, 0.75, 0.3); background: #050505; }
+.ac-strip[data-open] .ac-strip-band { clip-path: inset(0 0 0 0); transition: clip-path 0.6s var(--ease); }
+.ac-strip-track { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
+.ac-tile { position: absolute; top: 0; background-repeat: no-repeat; background-color: #0b0b0b; }
+/* the frames either side step back; the one you point at is the picture */
+.ac-tile::after { content: ''; position: absolute; inset: 0; background: #000; opacity: 0.5; transition: opacity 0.3s var(--ease); }
+.ac-tile[data-on]::after { opacity: 0; }
+.ac-tile + .ac-tile { box-shadow: inset 1px 0 0 rgb(0 0 0 / 0.6); }
+/* the centre line runs the full height, through the strip, like a playhead */
+.ac-strip-x { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; translate: -0.5px 0; background: rgb(243 241 236 / 0.85); transform: scaleY(0); transition: transform 0.6s var(--ease); }
+.ac-strip[data-open] .ac-strip-x { transform: scaleY(1); }
+.ac-strip-t { position: absolute; left: 50%; top: calc(50% - var(--th) / 2 - 14px); translate: -50% -100%; color: var(--fg); opacity: 0; transition: opacity 0.3s var(--ease); text-shadow: 0 0 10px rgb(0 0 0 / 0.6); padding: 2px 8px; background: rgb(0 0 0 / 0.55); }
+.ac-strip[data-open] .ac-strip-t { opacity: 1; }
+.ac:has(.ac-strip[data-open]) :is(.ac-cover, .ac-cursor) { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .ac-strip-band, .ac-strip[data-open] .ac-strip-band, .ac-strip-x { transition-duration: 0.15s; }
+}

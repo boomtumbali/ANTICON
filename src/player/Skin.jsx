@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Container, Gesture, Hotkey, StatusAnnouncer } from '@videojs/react';
 import { subscribeToInputActions } from '@videojs/core/dom';
 import { usePlayer } from './core.js';
+import { frameAt, useStoryboard } from './storyboard.js';
 
 /*
  * ANTICON's skin: a player with no icons. Words and numbers, set like a
@@ -318,6 +319,84 @@ function Scrub({ onPeek }) {
   );
 }
 
+/**
+ * The filmstrip: while you scrub, the film's own frames run across the middle
+ * of the picture as one continuous strip. The frame under the centre line is
+ * the moment you are pointing at; the strip slides with you, eased, so it
+ * glides rather than jumps. It opens out of a hairline and closes back into one.
+ */
+function Filmstrip({ peek, sb, duration }) {
+  const band = useRef(null);
+  const track = useRef(null);
+  const label = useRef(null);
+  const cur = useRef(null);
+  const target = useRef(0);
+  const raf = useRef(0);
+  const [w, setW] = useState(0);
+  const [act, setAct] = useState(-1);
+  const open = peek != null;
+  useEffect(() => {
+    const el = band.current;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // about five frames across, never tiny, never huge
+  const tw = Math.round(Math.min(400, Math.max(132, w / 4.8)));
+  const th = Math.round((tw * sb.tile_height) / sb.tile_width);
+  const k = tw / sb.tile_width;
+  useEffect(() => {
+    if (!open || !tw) return;
+    const { i, f } = frameAt(sb, peek);
+    target.current = w / 2 - (i + f) * tw;
+    setAct(i);
+    if (cur.current == null) cur.current = target.current;
+    cancelAnimationFrame(raf.current);
+    const tick = () => {
+      const d = target.current - cur.current;
+      cur.current += Math.abs(d) < 0.4 ? d : d * 0.22;
+      if (track.current) track.current.style.transform = `translate3d(${cur.current.toFixed(2)}px, 0, 0)`;
+      if (cur.current !== target.current) raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+  }, [peek, open, sb, w, tw]);
+  // closed: the next opening starts where you point, not sliding in from the last place
+  useEffect(() => {
+    if (open) return undefined;
+    const id = setTimeout(() => (cur.current = null), 400);
+    return () => clearTimeout(id);
+  }, [open]);
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  return (
+    <div className="ac-strip" data-open={open || undefined} style={{ '--th': `${th}px` }} aria-hidden="true">
+      <div className="ac-strip-dim" />
+      <div className="ac-strip-band" ref={band}>
+        <div className="ac-strip-track" ref={track} style={{ width: sb.tiles.length * tw }}>
+          {sb.tiles.map((tile, i) => (
+            <span
+              key={i}
+              className="ac-tile"
+              data-on={i === act || undefined}
+              style={{
+                left: i * tw,
+                width: tw,
+                height: th,
+                backgroundImage: `url(${sb.url})`,
+                backgroundSize: `${sb.w * k}px ${sb.h * k}px`,
+                backgroundPosition: `${-tile.x * k}px ${-tile.y * k}px`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <span className="ac-strip-x" />
+      <span className="ac-strip-t ac-mono" ref={label}>
+        {open ? clock(peek) : ''} <span className="ac-dim">/ {clock(duration)}</span>
+      </span>
+    </div>
+  );
+}
+
 /** The pointer as words: Play or Pause over the running timecode. Mouse and pen only. */
 function Cursor({ root }) {
   const paused = usePlayer((s) => s.paused);
@@ -436,6 +515,7 @@ function KeysSheet({ feed, fine, onClose }) {
  *   overlay            true while a page of the host covers the player (keys and idle pause)
  *   autoFocus          give the keyboard to the player at once
  *   tone               'adapt' (read the picture, default), 'dark' (always light ink), 'light' (always dark ink)
+ *   storyboard         a storyboard address (Mux: storyboard.json): scrubbing shows the film's frames as a strip
  *   soundGate, onSoundGate   the browser started the film silent: the next tap, click or key turns sound on
  *                      (inside that gesture, so every browser allows it) instead of playing or pausing
  */
@@ -464,6 +544,7 @@ export function AnticonSkin({
   label,
   soundGate = false,
   onSoundGate,
+  storyboard,
 }) {
   const store = usePlayer();
   const root = useRef(null);
@@ -498,6 +579,7 @@ export function AnticonSkin({
   const [peek, setPeek] = useState(null);
   const idle = !controlsVisible && !paused && !overlay;
   const tone = useTone(root, toneMode, fill);
+  const sb = useStoryboard(storyboard);
 
   const isFull = isFullProp ?? fsOn;
   const canFull = canFullProp ?? fsAvail === 'available';
@@ -900,7 +982,8 @@ export function AnticonSkin({
         </div>
       </div>
 
-      {peek != null && (
+      {sb && <Filmstrip peek={peek} sb={sb} duration={d} />}
+      {peek != null && !sb && (
         <span className="ac-bigtime" aria-hidden="true">
           {clock(peek)}
         </span>

@@ -6,7 +6,7 @@ import '@fontsource-variable/geist-mono';
 import '../anticon.css';
 import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
-import { FILMS, LOCAL, localSrc } from '../films.js';
+import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
 import { VideoJsMark } from './VideoJsMark.jsx';
 
 /*
@@ -99,7 +99,7 @@ function Lab() {
   const card = CARDS.find((c) => c.id === pic);
   const media = card
     ? { src: card.src, title: card.name, meta: 'Test card' }
-    : { ...(LOCAL ? { src: localSrc(film) } : { playbackId: film.playbackId }), title: film.title, meta: `${film.year} · ${film.studio}` };
+    : { ...(LOCAL ? { src: localSrc(film), storyboard: storyboardOf(film) } : { playbackId: film.playbackId }), title: film.title, meta: `${film.year} · ${film.studio}` };
 
   // what the skin decided, read back from it
   const [out, setOut] = useState(null);

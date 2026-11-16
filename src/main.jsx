@@ -7,6 +7,10 @@ import './anticon.css';
 import './page.css';
 import './landing.css';
 import App from './App.jsx';
+import { boot } from './boot.js';
+import { FILMS } from './films.js';
+
+boot({ onFilm: FILMS.some((f) => `#${f.id}` === location.hash) });
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
