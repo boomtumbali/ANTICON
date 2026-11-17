@@ -72,6 +72,82 @@ function zonesOf(host) {
 // which third of the picture a tap or click lands in
 const SIDE3 = (x, r) => (x - r.left < r.width / 3 ? 'left' : x - r.left > (r.width * 2) / 3 ? 'right' : 'center');
 
+// A short box (a phone held sideways, a cinema strip or a thumbnail in a page) has little height between its top row
+// (the title, and Share and Keys) and its bottom line (the time and the hairline). Each edge stands in that band,
+// centred there, so it never reaches the time or the title: the band is measured, not guessed, so it holds with any
+// title, any line under the hairline, and a phone whose text is set larger. If an edge is still longer than its band,
+// the words close up (data-tight), then step down a size (data-tighter); Play, Sound and Full always stay.
+function useEdgeBand(root) {
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return undefined;
+    const px = (v) => `${Math.round(v * 10) / 10}px`;
+    const set = (k, v) => {
+      if (el.style.getPropertyValue(k) !== px(v)) el.style.setProperty(k, px(v));
+    };
+    const shown = (n) => n && n.getClientRects().length > 0 && getComputedStyle(n).display !== 'none';
+    let busy = false;
+    const measure = () => {
+      if (busy) return;
+      const r = el.getBoundingClientRect();
+      if (!r.height || !el.offsetHeight) return;
+      busy = true;
+      const k = el.offsetHeight / r.height; // the Test page scales its stage: measure in the player's own pixels
+      const tl = el.querySelector('.ac-edges > .ac-tl');
+      const tr = el.querySelector('.ac-edges > .ac-tr');
+      const bottom = el.querySelector('.ac-edges > .ac-bottom');
+      set('--band-tl', shown(tl) ? (tl.getBoundingClientRect().bottom - r.top) * k : 0);
+      // the right edge only needs to clear the words in the corner, not their padding
+      const trWords = shown(tr) ? [...tr.querySelectorAll('button, a, .ac-mono')].filter(shown) : [];
+      set('--band-tr', trWords.length ? (Math.max(...trWords.map((w) => w.getBoundingClientRect().bottom)) - r.top) * k : 0);
+      set('--band-b', shown(bottom) ? (r.bottom - bottom.getBoundingClientRect().top) * k : 0);
+      // the title runs on one line and ends, with an ellipsis, a clear gap before the first word to its right on
+      // that line (the mark in the middle, Share and Keys, or the right edge where it rises to the top)
+      const tt = tl && tl.querySelector('.ac-title');
+      if (shown(tt)) {
+        const t = tt.getBoundingClientRect();
+        const left = tl.getBoundingClientRect().left;
+        const lineTop = t.top, lineBot = t.top + Math.max(t.height, 16 / k);
+        let limit = r.right - (left - r.left); // as far from the right as the title is from the left
+        const rivals = [
+          ...el.querySelectorAll('.ac-edges > .ac-tc *, .ac-edges > .ac-tr button, .ac-edges > .ac-tr a, .ac-edges > .ac-tr .ac-mono, .ac-edges > .ac-right > *'),
+        ].filter(shown);
+        for (const n of rivals) {
+          const b = n.getBoundingClientRect();
+          if (b.width && b.left > left && b.bottom > lineTop && b.top < lineBot) limit = Math.min(limit, b.left - 18 / k);
+        }
+        set('--tl-max', Math.max(40, (limit - left) * k));
+      }
+      // does each edge fit its band? if not, close the words up, then step them down
+      const over = () =>
+        [...el.querySelectorAll('.ac-edges > .ac-left, .ac-edges > .ac-right')].some((c) => {
+          const kids = [...c.children].filter(shown);
+          if (!kids.length) return false;
+          const box = c.getBoundingClientRect();
+          const top = Math.min(...kids.map((n) => n.getBoundingClientRect().top));
+          const bot = Math.max(...kids.map((n) => n.getBoundingClientRect().bottom));
+          return top < box.top - 0.5 || bot > box.bottom + 0.5;
+        });
+      el.removeAttribute('data-tight');
+      el.removeAttribute('data-tighter');
+      if (over()) {
+        el.setAttribute('data-tight', '');
+        if (over()) el.setAttribute('data-tighter', '');
+      }
+      busy = false;
+    };
+    measure();
+    const ro = new ResizeObserver(() => requestAnimationFrame(measure));
+    ro.observe(el);
+    for (const sel of ['.ac-edges > .ac-tl', '.ac-edges > .ac-tr', '.ac-edges > .ac-bottom', '.ac-edges > .ac-left', '.ac-edges > .ac-right']) {
+      const n = el.querySelector(sel);
+      if (n) ro.observe(n);
+    }
+    document.fonts?.ready?.then(measure);
+    return () => ro.disconnect();
+  }, [root]);
+}
+
 function useTone(root, fill) {
   const [tone, setTone] = useState({});
   useEffect(() => {
@@ -780,6 +856,7 @@ export function AnticonSkin({
   const [peek, setPeek] = useState(null);
   const idle = !controlsVisible && !paused && !overlay;
   const tone = useTone(root, fill);
+  useEdgeBand(root);
   const sb = useStoryboard(storyboard);
 
   const isFull = isFullProp ?? fsOn;
@@ -1324,7 +1401,7 @@ export function AnticonSkin({
         <div className="ac-tl">
           {title && (
             <TitleTag type={onTitle ? 'button' : undefined} className="ac-title" onClick={onTitle} aria-haspopup={onTitle ? 'dialog' : undefined}>
-              {title}
+              <span className="ac-title-t">{title}</span>
             </TitleTag>
           )}
           {meta && <span className="ac-mono ac-dim">{meta}</span>}

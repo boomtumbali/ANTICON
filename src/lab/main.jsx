@@ -7,7 +7,7 @@ import '../brand.css';
 import '../anticon.css';
 import './lab.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
-import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
+import { FILMS, LOCAL, fullTitle, localSrc, storyboardOf } from '../films.js';
 import { SiteHeader } from '../SiteHeader.jsx';
 import { SiteCredits } from '../credits.jsx';
 
@@ -141,7 +141,7 @@ function Lab() {
   const card = CARDS.find((c) => c.id === pic);
   const media = card
     ? { src: card.src, title: card.name, meta: 'Test card' }
-    : { ...(LOCAL ? { src: localSrc(film), storyboard: storyboardOf(film) } : { playbackId: film.playbackId }), title: film.title, meta: `${film.year} · ${film.studio}` };
+    : { ...(LOCAL ? { src: localSrc(film), storyboard: storyboardOf(film) } : { playbackId: film.playbackId }), title: fullTitle(film), meta: `${film.year} · ${film.studio}` };
 
   const screens = SCREENS.map((s) => ({ ...s, note: s.w ? `${s.w} × ${s.h}` : null }));
   const pictures = [...CARDS.map((c) => ({ id: c.id, name: c.name, note: 'card' })), ...FILMS.map((f) => ({ id: f.id, name: f.title, note: String(f.year) }))];

@@ -7,7 +7,7 @@ import '../brand.css';
 import '../anticon.css';
 import './embed.css';
 import { AnticonPlayer } from '../player/AnticonPlayer.jsx';
-import { FILMS, LOCAL, localSrc, storyboardOf } from '../films.js';
+import { FILMS, LOCAL, fullTitle, localSrc, storyboardOf } from '../films.js';
 import { SiteCredits, VideoJsLink } from '../credits.jsx';
 import { SiteHeader } from '../SiteHeader.jsx';
 
@@ -20,7 +20,7 @@ import { SiteHeader } from '../SiteHeader.jsx';
  */
 const pick = (id) => FILMS.find((f) => f.id === id);
 const props = (f) => ({
-  title: f.title,
+  title: fullTitle(f),
   meta: `${f.year} · ${f.studio}`,
   ...(LOCAL ? { src: localSrc(f), storyboard: storyboardOf(f) } : { playbackId: f.playbackId }),
 });

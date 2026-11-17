@@ -5,7 +5,7 @@ import { HlsJsVideo } from '@videojs/react/media/hlsjs-video';
 import { MuxData } from '@videojs/react/extensions/mux-data';
 import { Player } from './player/core.js';
 import { AnticonSkin } from './player/Skin.jsx';
-import { FILMS, LOCAL, localSrc, storyboardOf } from './films.js';
+import { FILMS, LOCAL, fullTitle, localSrc, storyboardOf } from './films.js';
 import { IndexPage, Credits } from './IndexPage.jsx';
 import { Landing } from './Landing.jsx';
 import { Wordmark } from './Wordmark.jsx';
@@ -439,7 +439,7 @@ function Feed({ start, closing, onExit, onClosed }) {
     <AnticonSkin
       rootRef={root}
       className="ac--page ac--feed"
-      title={film.title}
+      title={fullTitle(film)}
       meta={`${film.year} · ${film.studio}`}
       onTitle={() => setPage('credits')}
       corner={corner}
@@ -463,7 +463,7 @@ function Feed({ start, closing, onExit, onClosed }) {
       storyboard={storyboardOf(film)}
       share={{
         url: `${location.origin}/film/${film.id}`,
-        title: film.subtitle ? `${film.title}: ${film.subtitle}` : film.title,
+        title: fullTitle(film),
         text: `${film.title} (${film.year}), on ANTICON`,
       }}
       label={`ANTICON, ${film.title}, film ${film.n} of ${N}`}

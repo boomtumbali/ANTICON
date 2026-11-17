@@ -426,3 +426,37 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 /* snug: a film a hair off the box's shape fills it (see useTone), so no band too thin to hold a word is left */
 .ac[data-snug] :is(.ac-still, .ac-media, .ac-freeze, .ac-film) { object-fit: cover; }
 .ac[data-snug] .ac-mats { display: none; }
+
+/* ---------- short boxes: each edge in its own band ----------
+   At 420 px tall and under (a phone on its side, a cinema strip or a thumbnail in a page), each edge stands between
+   the top row and the bottom line, centred in that band, so a long edge never reaches the time, the hairline or the
+   title. The band is measured by the skin (useEdgeBand: --band-tl, --band-tr, --band-b). */
+@container ac (max-height: 420px) {
+  .ac .ac-edges > :is(.ac-left, .ac-right) { translate: none; justify-content: center; bottom: calc(var(--band-b, 44px) + 4px); }
+  .ac .ac-edges > .ac-left { top: calc(max(var(--et), var(--band-tl, 0px)) + 4px); }
+  .ac .ac-edges > .ac-right { top: calc(max(var(--et), var(--band-tr, 0px)) + 4px); }
+}
+/* the title stays in every box, down to a cinema strip on a phone: an embed without its film's name loses the one
+   thing that says what is playing. Under 200 px tall it keeps to one line and gives way before the right edge. */
+@container ac (max-height: 200px) {
+  .ac-tl { display: grid; max-width: calc(100cqw - var(--el) - var(--er) - 34px); }
+  .ac-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+}
+/* an edge longer than its band: the words close up, then step down a size */
+.ac[data-tight] .ac-edges > :is(.ac-left, .ac-right) { gap: 0; }
+.ac[data-tight] .ac-edges > :is(.ac-left, .ac-right) :is(.ac-word, .ac-vol, .ac-link) { padding-inline: 3px; letter-spacing: 0.06em; }
+.ac[data-tighter] .ac-edges > :is(.ac-left, .ac-right) :is(.ac-word, .ac-vol, .ac-link, .ac-mono) { font-size: 8.5px; padding-inline: 2px; letter-spacing: 0.04em; }
+/* the smallest strips (120 px tall and under): the margins and the title come in a little, so the title, Play and the
+   line still each have their own place */
+@container ac (max-height: 120px) {
+  .ac-edges { --e: 8px; --et: max(var(--e), env(safe-area-inset-top)); --eb: max(var(--e), env(safe-area-inset-bottom)); --el: max(10px, env(safe-area-inset-left)); --er: max(10px, env(safe-area-inset-right)); --tsize: 13px; }
+}
+/* a long title never reaches the words to its right: one line, ending in an ellipsis where the room ends (the room is
+   measured by the skin: --tl-max). The underline under the hand stays on the button, outside the clipped text. */
+.ac .ac-edges > .ac-tl { max-width: min(var(--tl-max, 52cqw), 900px); grid-template-columns: minmax(0, max-content); }
+.ac .ac-edges > .ac-tl > * { min-width: 0; }
+.ac .ac-edges > .ac-tl > .ac-title { display: block; max-width: 100%; white-space: normal; overflow: visible; }
+.ac-title-t { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@container ac (min-height: 301px) {
+  .ac .ac-edges > .ac-tl > .ac-mono { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+}

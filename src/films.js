@@ -15,6 +15,9 @@ export const FILMS = [
   { id: 'elephants-dream', title: 'Elephants Dream', year: 2006, playbackId: 'rdxZd5tlzr02nqLJJua9Jpq2sij009WlFBkFfxTInYRe4' },
 ].map((f, i) => ({ ...f, n: i + 1, studio: 'Blender Studio', poster: `/posters/${f.id}.webp` }));
 
+/** The film's whole name, as the player shows it: Agent 327: Operation Barbershop. */
+export const fullTitle = (film) => (film.subtitle ? `${film.title}: ${film.subtitle}` : film.title);
+
 /** A still from the film, from Mux (the middle of the film unless a time is given). Mux sizes it on its CDN. */
 export const stillOf = (film, width = 1600) => `https://image.mux.com/${film.playbackId}/thumbnail.webp?width=${width}&fit_mode=preserve`;
 
