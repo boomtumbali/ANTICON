@@ -460,3 +460,9 @@ li:last-child .ac-ix-row { border-bottom: 1px solid rgb(var(--fg-rgb) / 0.12); }
 @container ac (min-height: 301px) {
   .ac .ac-edges > .ac-tl > .ac-mono { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 }
+/* the clip that makes the ellipsis must not cut the letters' tails (g, p, y, j) or their tops: the clipping box
+   reaches past the tight line above and below, and gives the room back, so the line itself stays where it was */
+.ac-title-t { padding: 0.18em 0.12em 0.28em; margin: -0.18em -0.12em -0.28em; }
+@container ac (min-height: 301px) {
+  .ac .ac-edges > .ac-tl > .ac-mono { padding-block: 0.2em 0.3em; margin-block: -0.2em -0.3em; }
+}
